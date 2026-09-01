@@ -76,6 +76,36 @@ body {
     display: block;
 }
 
+.sync-status {
+    font-size: 12px;
+    color: #8a9aaa;
+    min-height: 16px;
+}
+
+.week-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.75rem;
+}
+
+.text-btn {
+    background: none;
+    border: 1px solid #c7d0d8;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: #5a6b7a;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.text-btn:hover {
+    border-color: #7a9b7f;
+    color: #1a2633;
+}
+
 .week-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -158,7 +188,7 @@ select {
 
 .shopping-container h3 {
     font-size: 14px;
-    margin: 0 0 12px 0;
+    margin: 0 0 4px 0;
     color: #1a2633;
     font-weight: 600;
     letter-spacing: -0.3px;
@@ -167,7 +197,41 @@ select {
 .shopping-container p {
     font-size: 12px;
     color: #8a9aaa;
-    margin: 0 0 12px 0;
+    margin: 0;
+}
+
+.shopping-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.shopping-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #shopping-container, #shopping-container * {
+        visibility: visible;
+    }
+    #shopping-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        border: none;
+        background: none;
+    }
+    .shopping-actions {
+        display: none !important;
+    }
 }
 
 .shopping-list {
@@ -447,11 +511,23 @@ const BODY_HTML = `
     <div class="content">
         <!-- THIS WEEK TAB -->
         <div id="week-tab" class="tab-content active">
+            <div class="week-toolbar">
+                <p id="sync-status" class="sync-status"></p>
+                <button id="clear-week-btn" class="text-btn">Clear week</button>
+            </div>
             <div id="week-grid" class="week-grid"></div>
 
             <div id="shopping-container" class="shopping-container" style="display: none;">
-                <h3>Shopping List by Meal</h3>
-                <p>Uncheck items you already have</p>
+                <div class="shopping-header">
+                    <div>
+                        <h3>Shopping List by Meal</h3>
+                        <p>Uncheck items you already have</p>
+                    </div>
+                    <div class="shopping-actions">
+                        <button id="clear-shopping-btn" class="text-btn">Clear checks</button>
+                        <button id="print-shopping-btn" class="text-btn">Print / Save</button>
+                    </div>
+                </div>
                 <div id="shopping-list-by-meal" style="display: flex; flex-direction: column; gap: 1.5rem;"></div>
             </div>
         </div>
@@ -508,17 +584,42 @@ const FALLBACK_RECIPES = {
   },
 };
 
-function initApp(recipesData) {
+function initApp(recipesData, planData) {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   let week = {};
   let recipes = recipesData;
-  let shoppingChecks = {};
+  let shoppingChecks = (planData && planData.shoppingChecks) || {};
   let currentFilter = {};
 
   days.forEach((day) => {
-    week[day] = { meal: '', cook: '' };
+    const saved = planData && planData.week && planData.week[day];
+    week[day] = { meal: (saved && saved.meal) || '', cook: (saved && saved.cook) || '' };
     currentFilter[day] = 'alphabet';
   });
+
+  // Shared "This Week" plan + shopping list - saved to a small database so
+  // whoever else opens this app (e.g. your husband) sees the same plan and
+  // the same checked-off items, instead of everyone getting a blank slate.
+  const syncStatus = document.getElementById('sync-status');
+  let saveTimer = null;
+  function savePlan() {
+    if (syncStatus) syncStatus.textContent = 'Saving…';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ week, shoppingChecks }),
+        });
+        if (!res.ok) throw new Error('save failed');
+        if (syncStatus) syncStatus.textContent = 'Saved - shared with your household';
+      } catch (err) {
+        console.warn('Could not save the shared plan:', err);
+        if (syncStatus) syncStatus.textContent = "Couldn't save - check your connection";
+      }
+    }, 300);
+  }
 
   // Tab switching
   document.getElementById('tab-week').addEventListener('click', () => {
@@ -532,6 +633,31 @@ function initApp(recipesData) {
     document.getElementById('week-tab').classList.remove('active');
     document.getElementById('tab-recipes').classList.add('active');
     document.getElementById('tab-week').classList.remove('active');
+  });
+
+  // Clear the whole week (meal picks, cook assignments, and shopping checks)
+  // - for after you've shopped and cooked, ready to plan the next one.
+  document.getElementById('clear-week-btn').addEventListener('click', () => {
+    if (!window.confirm("Clear this week's meals and shopping list? This can't be undone.")) return;
+    days.forEach((day) => {
+      week[day] = { meal: '', cook: '' };
+    });
+    shoppingChecks = {};
+    renderWeek();
+    updateShoppingList();
+    savePlan();
+  });
+
+  // Clear just the shopping-list checkmarks, keeping this week's meal plan.
+  document.getElementById('clear-shopping-btn').addEventListener('click', () => {
+    if (!window.confirm('Reset all shopping list checkmarks?')) return;
+    shoppingChecks = {};
+    updateShoppingList();
+    savePlan();
+  });
+
+  document.getElementById('print-shopping-btn').addEventListener('click', () => {
+    window.print();
   });
 
   // Modal controls
@@ -640,13 +766,17 @@ function initApp(recipesData) {
         week[day].meal = e.target.value;
         updateShoppingList();
         renderWeek();
+        savePlan();
       });
 
       const cookSelect = document.createElement('select');
       cookSelect.innerHTML =
         '<option value="">Cook?</option><option value="Cait">Cait</option><option value="Russel">Russel</option><option value="Takeaway">Takeaway</option>';
       cookSelect.value = week[day].cook;
-      cookSelect.addEventListener('change', (e) => (week[day].cook = e.target.value));
+      cookSelect.addEventListener('change', (e) => {
+        week[day].cook = e.target.value;
+        savePlan();
+      });
 
       card.appendChild(title);
       card.appendChild(filterContainer);
@@ -720,6 +850,7 @@ function initApp(recipesData) {
               const checkbox = li.querySelector('input');
               checkbox.addEventListener('change', () => {
                 shoppingChecks[id] = !!checkbox.checked;
+                savePlan();
               });
             });
 
@@ -751,6 +882,7 @@ function initApp(recipesData) {
               const checkbox = li.querySelector('input');
               checkbox.addEventListener('change', () => {
                 shoppingChecks[id] = !!checkbox.checked;
+                savePlan();
               });
             });
 
@@ -803,6 +935,7 @@ function initApp(recipesData) {
 
   // Initialize
   renderWeek();
+  updateShoppingList();
   renderRecipes();
 }
 
@@ -823,8 +956,19 @@ export default function Home() {
       } catch (err) {
         console.warn('Notion fetch failed, using fallback recipes:', err);
       }
+
+      let plan = null;
+      try {
+        const res = await fetch('/api/plan');
+        const data = await res.json();
+        if (res.ok) plan = data;
+        else console.warn('Shared plan fetch failed, starting blank:', data.error);
+      } catch (err) {
+        console.warn('Shared plan fetch failed, starting blank:', err);
+      }
+
       if (!cancelled) {
-        initApp(recipes);
+        initApp(recipes, plan);
       }
     }
 
