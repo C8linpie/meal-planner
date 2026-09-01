@@ -209,32 +209,6 @@ select {
     font-weight: 600;
 }
 
-.add-recipe-form {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(122, 155, 127, 0.1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-}
-
-.form-title {
-    font-size: 13px;
-    margin: 0 0 12px 0;
-    color: #1a2633;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.form-label {
-    display: block;
-    font-size: 12px;
-    color: #8a9aaa;
-    margin-bottom: 6px;
-    font-weight: 500;
-}
-
 input[type="text"],
 select,
 textarea {
@@ -316,10 +290,6 @@ textarea {
     cursor: pointer;
     font-size: 12px;
     font-weight: 500;
-}
-
-.recipe-buttons button.delete {
-    background: #c17a4a;
 }
 
 .modal {
@@ -461,81 +431,6 @@ textarea {
     white-space: pre-wrap;
 }
 
-.text-editor-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #f9f7f4 0%, #f5f2ed 100%);
-    z-index: 2000;
-    flex-direction: column;
-}
-
-.text-editor-modal.active {
-    display: flex;
-}
-
-.editor-header {
-    background: linear-gradient(135deg, #1a2633 0%, #2d3e4f 100%);
-    padding: 1rem 1.25rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.editor-header h2 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #f9f7f4;
-}
-
-.editor-header button {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #f9f7f4;
-    padding: 0;
-}
-
-#text-editor-content {
-    flex: 1;
-    padding: 1.5rem;
-    border: none;
-    background: white;
-    font-size: 16px;
-    font-family: inherit;
-    resize: none;
-}
-
-.editor-footer {
-    padding: 1rem 1.25rem;
-    background: white;
-    border-top: 1px solid #e0dcd7;
-    display: flex;
-    gap: 8px;
-}
-
-.editor-footer button {
-    flex: 1;
-    padding: 12px;
-    background: #7a9b7f;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.editor-footer button.secondary {
-    background: #e0dcd7;
-    color: #1a2633;
-}
 `;
 
 const BODY_HTML = `
@@ -563,43 +458,7 @@ const BODY_HTML = `
 
         <!-- RECIPES TAB -->
         <div id="recipes-tab" class="tab-content">
-            <h2 class="recipes-header">Manage Recipes</h2>
-
-            <div class="add-recipe-form">
-                <h3 class="form-title">Add Recipe</h3>
-                <input type="text" id="recipe-name" placeholder="Recipe name">
-                <select id="recipe-category">
-                    <option value="">Choose category</option>
-                    <option value="Vegetarian">Vegetarian</option>
-                    <option value="Asian">Asian</option>
-                    <option value="Pasta">Pasta</option>
-                    <option value="Quick">Quick</option>
-                    <option value="Mediterranean">Mediterranean</option>
-                    <option value="World">World</option>
-                    <option value="Fish">Fish</option>
-                    <option value="Takeaway">Takeaway</option>
-                    <option value="Chicken">Chicken</option>
-                    <option value="Other">Other</option>
-                </select>
-                <select id="recipe-protein">
-                    <option value="">Choose protein</option>
-                    <option value="None">None (vegetarian)</option>
-                    <option value="Chicken">Chicken</option>
-                    <option value="Fish">Fish</option>
-                    <option value="Tofu">Tofu</option>
-                    <option value="Meat">Meat</option>
-                    <option value="Mixed">Mixed</option>
-                </select>
-                <label class="form-label">Ingredients</label>
-                <div id="add-ingredients-preview" style="background: #fafbfc; border: 1px solid #e0dcd7; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 12px; color: #1a2633; min-height: 30px; cursor: pointer; border: 1px dashed #c17a4a;">Add ingredients...</div>
-                <textarea id="recipe-ingredients" style="display: none;"></textarea>
-
-                <label class="form-label">Instructions</label>
-                <div id="add-instructions-preview" style="background: #fafbfc; border: 1px solid #e0dcd7; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 12px; color: #1a2633; min-height: 30px; cursor: pointer; border: 1px dashed #c17a4a;">Add instructions...</div>
-                <textarea id="recipe-instructions" style="display: none;"></textarea>
-
-                <button class="add-btn" id="add-btn">Add Recipe</button>
-            </div>
+            <h2 class="recipes-header">Recipes</h2>
 
             <div id="recipes-grid" class="recipes-grid"></div>
         </div>
@@ -626,86 +485,7 @@ const BODY_HTML = `
             </div>
 
             <div class="modal-footer">
-                <button id="edit-meal-btn">Edit</button>
                 <button class="secondary" id="close-meal-btn-2">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- EDIT RECIPE MODAL -->
-    <div id="edit-recipe-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="edit-modal-title">Edit Recipe</h2>
-                <button class="close-btn" id="close-edit-btn">✕</button>
-            </div>
-
-            <div class="modal-body">
-                <input type="text" id="edit-recipe-name" placeholder="Recipe name">
-                <select id="edit-recipe-category">
-                    <option value="">Choose category</option>
-                    <option value="Vegetarian">Vegetarian</option>
-                    <option value="Asian">Asian</option>
-                    <option value="Pasta">Pasta</option>
-                    <option value="Quick">Quick</option>
-                    <option value="Mediterranean">Mediterranean</option>
-                    <option value="World">World</option>
-                    <option value="Fish">Fish</option>
-                    <option value="Takeaway">Takeaway</option>
-                    <option value="Chicken">Chicken</option>
-                    <option value="Other">Other</option>
-                </select>
-                <select id="edit-recipe-protein">
-                    <option value="">Choose protein</option>
-                    <option value="None">None (vegetarian)</option>
-                    <option value="Chicken">Chicken</option>
-                    <option value="Fish">Fish</option>
-                    <option value="Tofu">Tofu</option>
-                    <option value="Meat">Meat</option>
-                    <option value="Mixed">Mixed</option>
-                </select>
-                <label class="form-label">Ingredients</label>
-                <div id="edit-ingredients-preview" style="background: white; border: 1px solid #e0dcd7; border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 12px; color: #1a2633; max-height: 60px; overflow-y: auto; cursor: pointer; white-space: pre-wrap;"></div>
-                <textarea id="edit-recipe-ingredients" style="display: none;"></textarea>
-
-                <label class="form-label">Instructions</label>
-                <div id="edit-instructions-preview" style="background: white; border: 1px solid #e0dcd7; border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 12px; color: #1a2633; max-height: 60px; overflow-y: auto; cursor: pointer; white-space: pre-wrap;"></div>
-                <textarea id="edit-recipe-instructions" style="display: none;"></textarea>
-            </div>
-
-            <div class="modal-footer">
-                <button id="edit-save-btn">Save</button>
-                <button class="secondary" id="edit-close-btn">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TEXT EDITOR MODAL -->
-    <div id="text-editor-modal" class="text-editor-modal">
-        <div class="editor-header">
-            <h2 id="text-editor-title"></h2>
-            <button id="close-text-editor">✕</button>
-        </div>
-        <textarea id="text-editor-content"></textarea>
-        <div class="editor-footer">
-            <button id="text-editor-save">Done</button>
-            <button class="secondary" id="text-editor-cancel">Cancel</button>
-        </div>
-    </div>
-
-    <!-- DELETE CONFIRMATION MODAL -->
-    <div id="delete-modal" class="modal">
-        <div class="modal-content" style="max-width: 320px; max-height: auto;">
-            <div class="modal-header">
-                <h2>Delete recipe?</h2>
-                <button class="close-btn" id="close-delete" style="display: none;">✕</button>
-            </div>
-            <div class="modal-body">
-                <p id="delete-message" style="font-size: 13px; color: #8a9aaa; margin: 0;"></p>
-            </div>
-            <div class="modal-footer">
-                <button style="background: #c17a4a;" id="delete-confirm-btn">Delete</button>
-                <button class="secondary" id="delete-cancel-btn">Keep</button>
             </div>
         </div>
     </div>
@@ -729,9 +509,6 @@ function initApp(recipesData) {
   let recipes = recipesData;
   let shoppingChecks = {};
   let currentFilter = {};
-  let currentlyEditing = null;
-  let textEditorField = null;
-  let textEditorSource = null;
 
   days.forEach((day) => {
     week[day] = { meal: '', cook: '' };
@@ -752,70 +529,12 @@ function initApp(recipesData) {
     document.getElementById('tab-week').classList.remove('active');
   });
 
-  // Text editor
-  function openTextEditor(title, content, field, source) {
-    textEditorField = field;
-    textEditorSource = source;
-    document.getElementById('text-editor-title').textContent = title;
-    document.getElementById('text-editor-content').value = content;
-    document.getElementById('text-editor-modal').classList.add('active');
-    setTimeout(() => document.getElementById('text-editor-content').focus(), 100);
-  }
-  document.getElementById('close-text-editor').addEventListener('click', () => {
-    document.getElementById('text-editor-modal').classList.remove('active');
-  });
-  document.getElementById('text-editor-cancel').addEventListener('click', () => {
-    document.getElementById('text-editor-modal').classList.remove('active');
-  });
-  document.getElementById('text-editor-save').addEventListener('click', () => {
-    const value = document.getElementById('text-editor-content').value;
-    if (textEditorSource === 'add') {
-      document.getElementById(textEditorField).value = value;
-      if (textEditorField === 'recipe-ingredients') {
-        document.getElementById('add-ingredients-preview').textContent =
-          value.split('\n').slice(0, 2).join('\n') + (value.split('\n').length > 2 ? '...' : '');
-      } else {
-        document.getElementById('add-instructions-preview').textContent =
-          value.split('\n').slice(0, 2).join('\n') + (value.split('\n').length > 2 ? '...' : '');
-      }
-    } else if (textEditorSource === 'edit') {
-      document.getElementById(textEditorField).value = value;
-      if (textEditorField === 'edit-recipe-ingredients') {
-        document.getElementById('edit-ingredients-preview').textContent =
-          value.split('\n').slice(0, 2).join('\n') + (value.split('\n').length > 2 ? '...' : '');
-      } else {
-        document.getElementById('edit-instructions-preview').textContent =
-          value.split('\n').slice(0, 2).join('\n') + (value.split('\n').length > 2 ? '...' : '');
-      }
-    }
-    document.getElementById('text-editor-modal').classList.remove('active');
-  });
-  document.getElementById('add-ingredients-preview').addEventListener('click', () => {
-    const current = document.getElementById('recipe-ingredients').value;
-    openTextEditor('Edit Ingredients', current, 'recipe-ingredients', 'add');
-  });
-  document.getElementById('add-instructions-preview').addEventListener('click', () => {
-    const current = document.getElementById('recipe-instructions').value;
-    openTextEditor('Edit Instructions', current, 'recipe-instructions', 'add');
-  });
-
   // Modal controls
   document.getElementById('close-meal-btn').addEventListener('click', () => {
     document.getElementById('meal-details-modal').classList.remove('active');
   });
   document.getElementById('close-meal-btn-2').addEventListener('click', () => {
     document.getElementById('meal-details-modal').classList.remove('active');
-  });
-  document.getElementById('edit-meal-btn').addEventListener('click', () => {
-    const mealName = document.getElementById('meal-title').textContent;
-    document.getElementById('meal-details-modal').classList.remove('active');
-    openEditForm(mealName);
-  });
-  document.getElementById('close-edit-btn').addEventListener('click', () => {
-    document.getElementById('edit-recipe-modal').classList.remove('active');
-  });
-  document.getElementById('edit-close-btn').addEventListener('click', () => {
-    document.getElementById('edit-recipe-modal').classList.remove('active');
   });
 
   // Show meal details
@@ -847,50 +566,6 @@ function initApp(recipesData) {
     document.getElementById('meal-instructions').textContent = recipe.instructions || 'No instructions available';
     document.getElementById('meal-details-modal').classList.add('active');
   }
-
-  // Edit form
-  function openEditForm(mealName) {
-    const recipe = recipes[mealName];
-    if (!recipe) return;
-
-    currentlyEditing = mealName;
-    document.getElementById('edit-modal-title').textContent = 'Edit: ' + mealName;
-    document.getElementById('edit-recipe-name').value = mealName;
-    document.getElementById('edit-recipe-category').value = recipe.category || '';
-    document.getElementById('edit-recipe-protein').value = recipe.protein || '';
-    document.getElementById('edit-recipe-ingredients').value = recipe.ingredients;
-    document.getElementById('edit-recipe-instructions').value = recipe.instructions || '';
-
-    document.getElementById('edit-ingredients-preview').textContent =
-      recipe.ingredients.split('\n').slice(0, 2).join('\n') + (recipe.ingredients.split('\n').length > 2 ? '...' : '');
-    document.getElementById('edit-ingredients-preview').onclick = () =>
-      openTextEditor('Edit Ingredients', recipe.ingredients, 'edit-recipe-ingredients', 'edit');
-
-    document.getElementById('edit-instructions-preview').textContent =
-      (recipe.instructions || '').split('\n').slice(0, 2).join('\n') +
-      ((recipe.instructions || '').split('\n').length > 2 ? '...' : '');
-    document.getElementById('edit-instructions-preview').onclick = () =>
-      openTextEditor('Edit Instructions', recipe.instructions || '', 'edit-recipe-instructions', 'edit');
-
-    document.getElementById('edit-recipe-modal').classList.add('active');
-  }
-  document.getElementById('edit-save-btn').addEventListener('click', () => {
-    const oldName = currentlyEditing;
-    const newName = document.getElementById('edit-recipe-name').value.trim();
-    const category = document.getElementById('edit-recipe-category').value || 'Other';
-    const protein = document.getElementById('edit-recipe-protein').value || 'None';
-    const ingredients = document.getElementById('edit-recipe-ingredients').value.trim();
-    const instructions = document.getElementById('edit-recipe-instructions').value.trim();
-
-    if (newName && ingredients && instructions) {
-      if (oldName && recipes[oldName]) delete recipes[oldName];
-      recipes[newName] = { ingredients, category, protein, instructions };
-      renderRecipes();
-      renderWeek();
-      document.getElementById('edit-recipe-modal').classList.remove('active');
-      currentlyEditing = null;
-    }
-  });
 
   // Get filtered meals
   function getFilteredMeals(filter) {
@@ -1113,12 +788,7 @@ function initApp(recipesData) {
         viewBtn.textContent = '👁 View';
         viewBtn.addEventListener('click', () => showMealDetails(name));
 
-        const editBtn = document.createElement('button');
-        editBtn.textContent = '✎ Edit';
-        editBtn.addEventListener('click', () => openEditForm(name));
-
         buttonContainer.appendChild(viewBtn);
-        buttonContainer.appendChild(editBtn);
         card.appendChild(title);
         card.appendChild(cat);
         card.appendChild(ingr);
@@ -1126,28 +796,6 @@ function initApp(recipesData) {
         grid.appendChild(card);
       });
   }
-
-  // Add recipe
-  document.getElementById('add-btn').addEventListener('click', () => {
-    const name = document.getElementById('recipe-name').value.trim();
-    const category = document.getElementById('recipe-category').value || 'Other';
-    const protein = document.getElementById('recipe-protein').value || 'None';
-    const ingredients = document.getElementById('recipe-ingredients').value.trim();
-    const instructions = document.getElementById('recipe-instructions').value.trim();
-
-    if (name && ingredients && instructions) {
-      recipes[name] = { ingredients, category, protein, instructions };
-      document.getElementById('recipe-name').value = '';
-      document.getElementById('recipe-category').value = '';
-      document.getElementById('recipe-protein').value = '';
-      document.getElementById('recipe-ingredients').value = '';
-      document.getElementById('recipe-instructions').value = '';
-      document.getElementById('add-ingredients-preview').textContent = 'Add ingredients...';
-      document.getElementById('add-instructions-preview').textContent = 'Add instructions...';
-      renderRecipes();
-      renderWeek();
-    }
-  });
 
   // Initialize
   renderWeek();
