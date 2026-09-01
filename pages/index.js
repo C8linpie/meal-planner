@@ -478,6 +478,11 @@ const BODY_HTML = `
                     <ul id="meal-ingredients-list" class="ingredients-list"></ul>
                 </div>
 
+                <div class="meal-section" id="meal-pantry-section" style="display: none;">
+                    <h3>Pantry</h3>
+                    <ul id="meal-pantry-list" class="ingredients-list"></ul>
+                </div>
+
                 <div class="meal-section">
                     <h3>Instructions</h3>
                     <div id="meal-instructions" class="instructions"></div>
@@ -547,21 +552,20 @@ function initApp(recipesData) {
     const ingredientsList = document.getElementById('meal-ingredients-list');
     ingredientsList.innerHTML = recipe.ingredients
       .split('\n')
-      .map((ing, idx) => {
-        const id = 'ing-' + mealName.replace(/\s/g, '-') + '-' + idx;
-        const checked = typeof window !== 'undefined' && localStorage.getItem(id);
-        return `<li>
-                    <input type="checkbox" id="${id}" ${checked ? 'checked' : ''}>
-                    <label for="${id}" style="${checked ? 'text-decoration: line-through; color: #8a9aaa;' : ''}">${ing.trim()}</label>
-                </li>`;
-      })
+      .filter((ing) => ing.trim())
+      .map((ing) => `<li>${ing.trim()}</li>`)
       .join('');
 
-    Array.from(ingredientsList.querySelectorAll('input')).forEach((checkbox) => {
-      checkbox.addEventListener('change', () => {
-        localStorage.setItem(checkbox.id, checkbox.checked);
-      });
-    });
+    const pantrySection = document.getElementById('meal-pantry-section');
+    const pantryList = document.getElementById('meal-pantry-list');
+    const pantryItems = (recipe.pantry || '').split('\n').filter((p) => p.trim());
+    if (pantryItems.length) {
+      pantryList.innerHTML = pantryItems.map((p) => `<li>${p.trim()}</li>`).join('');
+      pantrySection.style.display = '';
+    } else {
+      pantryList.innerHTML = '';
+      pantrySection.style.display = 'none';
+    }
 
     document.getElementById('meal-instructions').textContent = recipe.instructions || 'No instructions available';
     document.getElementById('meal-details-modal').classList.add('active');
