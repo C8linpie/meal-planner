@@ -11,6 +11,7 @@ const PROP = {
   cook: process.env.NOTION_PROP_COOK || 'Cook (mins)',
   prep: process.env.NOTION_PROP_PREP || 'Prep (mins)',
   serves: process.env.NOTION_PROP_SERVES || 'Serves',
+  protein: process.env.NOTION_PROP_PROTEIN || 'Protein',
 };
 
 // Most of your recipes store ingredients/method as page content (a heading
@@ -110,9 +111,9 @@ function parseRecipeBlocks(blocks) {
   return { ingredients: ingredients.join('\n'), instructions: instructions.join('\n') };
 }
 
-// Your database has no "protein" column, so this guesses one from the
-// ingredient text. It's an approximation, not a real classification -
-// tweak the keyword lists below if it gets something wrong.
+// Fallback only: used if a recipe's real Notion "Protein" column is empty.
+// Guesses a protein from the ingredient text so the filter still has
+// something reasonable to show.
 function guessProtein(ingredientsText) {
   const t = ingredientsText.toLowerCase();
   if (/\bchicken\b/.test(t)) return 'Chicken';
@@ -160,6 +161,7 @@ export default async function handler(req, res) {
       const cook = getNumber(props[PROP.cook]);
       const prep = getNumber(props[PROP.prep]);
       const serves = getNumber(props[PROP.serves]);
+      const proteinProp = getSelect(props[PROP.protein]);
 
       const blocks = await getAllBlocks(notion, page.id);
       let { ingredients, instructions } = parseRecipeBlocks(blocks);
@@ -182,7 +184,7 @@ export default async function handler(req, res) {
 
       recipes[name] = {
         category: tags.length ? tags.join(', ') : source || 'Other',
-        protein: guessProtein(ingredients),
+        protein: proteinProp || guessProtein(ingredients),
         ingredients,
         pantry: '',
         instructions,
