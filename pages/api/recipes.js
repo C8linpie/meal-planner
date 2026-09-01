@@ -18,6 +18,7 @@ const PROP = {
 // plus a list), not as database columns, so we look for headings matching
 // these patterns rather than reading a fixed column.
 const INGREDIENT_HEADING = /ingredient/i;
+const PANTRY_HEADING = /pantry/i;
 const METHOD_HEADING = /(method|instruction|steps?|directions)/i;
 
 function getTitle(prop) {
@@ -66,11 +67,13 @@ async function getAllBlocks(notion, blockId) {
 }
 
 // Reads the page body looking for an "Ingredients" heading (collects the
-// list items under it) and a "Method"/"Instructions" heading (collects and
-// numbers the steps under it). Anything under an unrelated heading is
-// ignored.
+// list items under it), an optional "Pantry" heading (collects staples you
+// keep on hand separately, e.g. oil, salt, spices), and a "Method"/
+// "Instructions" heading (collects and numbers the steps under it).
+// Anything under an unrelated heading is ignored.
 function parseRecipeBlocks(blocks) {
   const ingredients = [];
+  const pantry = [];
   const instructions = [];
   let section = null;
   let stepNum = 1;
@@ -78,7 +81,9 @@ function parseRecipeBlocks(blocks) {
   for (const block of blocks) {
     if (isHeading(block)) {
       const text = blockPlainText(block);
-      if (INGREDIENT_HEADING.test(text)) {
+      if (PANTRY_HEADING.test(text)) {
+        section = 'pantry';
+      } else if (INGREDIENT_HEADING.test(text)) {
         section = 'ingredients';
       } else if (METHOD_HEADING.test(text)) {
         section = 'method';
@@ -89,10 +94,10 @@ function parseRecipeBlocks(blocks) {
       continue;
     }
 
-    if (section === 'ingredients') {
+    if (section === 'ingredients' || section === 'pantry') {
       if (['bulleted_list_item', 'numbered_list_item', 'to_do'].includes(block.type)) {
         const t = blockPlainText(block).trim();
-        if (t) ingredients.push(t);
+        if (t) (section === 'pantry' ? pantry : ingredients).push(t);
       }
     } else if (section === 'method') {
       if (['numbered_list_item', 'bulleted_list_item', 'to_do'].includes(block.type)) {
@@ -108,7 +113,11 @@ function parseRecipeBlocks(blocks) {
     }
   }
 
-  return { ingredients: ingredients.join('\n'), instructions: instructions.join('\n') };
+  return {
+    ingredients: ingredients.join('\n'),
+    pantry: pantry.join('\n'),
+    instructions: instructions.join('\n'),
+  };
 }
 
 // Fallback only: used if a recipe's real Notion "Protein" column is empty.
@@ -164,7 +173,7 @@ export default async function handler(req, res) {
       const proteinProp = getSelect(props[PROP.protein]);
 
       const blocks = await getAllBlocks(notion, page.id);
-      let { ingredients, instructions } = parseRecipeBlocks(blocks);
+      let { ingredients, pantry, instructions } = parseRecipeBlocks(blocks);
 
       if (!instructions) {
         instructions = link ? `Full recipe: ${link}` : 'No instructions available in Notion yet.';
@@ -186,7 +195,7 @@ export default async function handler(req, res) {
         category: tags.length ? tags.join(', ') : source || 'Other',
         protein: proteinProp || guessProtein(ingredients),
         ingredients,
-        pantry: '',
+        pantry,
         instructions,
       };
     }
