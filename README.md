@@ -1,7 +1,7 @@
 # Weekly Meal Planner
 
 A weekly meal planner that pulls your recipes live from Notion. Plan meals for
-the week, auto-generate a shopping list, and browse/add recipes.
+the week, auto-generate a shopping list, and browse recipes.
 
 ## How it's wired up
 
@@ -9,9 +9,10 @@ the week, auto-generate a shopping list, and browse/add recipes.
 - `pages/api/recipes.js` — a serverless function that queries your Notion
   "Recipes" database and reads each recipe's Ingredients/Method content,
   so your Notion token never reaches the browser.
-- Recipes you add or edit in the app itself only live in that browser tab's
-  session (they are **not** written back to Notion). This build is a
-  one-way sync: Notion -> app.
+- The Recipes tab is **read-only** — recipe management (adding, editing,
+  removing recipes) happens entirely in Notion. This is a one-way sync:
+  Notion -> app. To change a recipe, edit it in Notion; the app picks it up
+  on the next load (Notion data is cached for up to 60 seconds).
 
 ## 1. Make sure your Notion integration can see the database
 
@@ -54,13 +55,11 @@ handles this by:
 - **Category** (used for the "Cuisine" filter): your Notion **Tags**
   (e.g. "Vegetarian, Weeknight"), falling back to **Source** if a recipe has
   no tags.
-- **Protein** (used for the "Protein" filter): there's no protein column in
-  your database, so this is **guessed** from keywords in the ingredient list
-  (chicken, fish, beef/lamb/pork, tofu, egg/cheese, etc). It's an
-  approximation — recipes can come out miscategorized. If that's annoying,
-  the cleanest fix is adding a real "Protein" select column in Notion and
-  extending `pages/api/recipes.js` to read it directly (see the `PROP`
-  object at the top of that file).
+- **Protein** (used for the "Protein" filter): read directly from your
+  Notion **Protein** select column. If a recipe's Protein column is left
+  empty, the app falls back to guessing from keywords in the ingredient
+  list (chicken, fish, beef/lamb/pork, tofu, egg/cheese, etc.) so the
+  filter still has something to show.
 - Recipes that only have an external **Recipe link** (no Ingredients/Method
   written in Notion, e.g. "Ramen") show that link in place of full
   ingredients/instructions.
