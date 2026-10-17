@@ -784,7 +784,9 @@
             container.innerHTML = html;
 
             document.querySelectorAll('.recipe-checkbox').forEach(cb => {
-                cb.addEventListener('change', updateShortlist);
+                cb.addEventListener('change', function(e) {
+                    updateShortlist(e.target);
+                });
             });
 
             document.getElementById('searchInput')?.addEventListener('input', renderRecipes);
@@ -880,13 +882,9 @@
         function updateShortlistFromModal() {
             const recipeName = document.getElementById('modalTitle').textContent;
             const isChecked = document.getElementById('modalCheckbox').checked;
+            const checkbox = { dataset: { name: recipeName }, checked: isChecked };
 
-            if (isChecked && !shortlist.includes(recipeName)) {
-                shortlist.push(recipeName);
-            } else if (!isChecked && shortlist.includes(recipeName)) {
-                shortlist = shortlist.filter(m => m !== recipeName);
-            }
-            saveToStorage();
+            updateShortlist(checkbox);
             renderRecipes();
         }
 
@@ -898,11 +896,15 @@
             }
         });
 
-        function updateShortlist() {
-            shortlist = [];
-            document.querySelectorAll('.recipe-checkbox:checked').forEach(cb => {
-                shortlist.push(cb.dataset.name);
-            });
+        function updateShortlist(checkbox) {
+            const recipeName = checkbox.dataset.name;
+            if (checkbox.checked) {
+                if (!shortlist.includes(recipeName)) {
+                    shortlist.push(recipeName);
+                }
+            } else {
+                shortlist = shortlist.filter(m => m !== recipeName);
+            }
             saveToStorage();
         }
 
@@ -928,25 +930,52 @@
         function updateAssignment(select) {
             const meal = select.dataset.meal;
             if (select.value) {
-                assignments[meal] = select.value;
+                // Store meal with day and default cook (Russel)
+                assignments[meal] = { day: select.value, cook: 'Russel' };
             } else {
                 delete assignments[meal];
             }
             saveToStorage();
+            renderWeek();
+        }
+
+        function updateCook(select) {
+            const meal = select.dataset.meal;
+            const cook = select.value;
+            if (assignments[meal]) {
+                if (typeof assignments[meal] === 'string') {
+                    // Migrate legacy format
+                    assignments[meal] = { day: assignments[meal], cook: cook };
+                } else {
+                    assignments[meal].cook = cook;
+                }
+                saveToStorage();
+            }
         }
 
         function renderWeek() {
             const grid = document.getElementById('weekGrid');
 
             grid.innerHTML = days.map(day => {
-                const assigned = Object.entries(assignments).find(([_, d]) => d === day);
+                const assigned = Object.entries(assignments).find(([_, info]) => {
+                    if (typeof info === 'string') return info === day; // Legacy format
+                    return info.day === day;
+                });
                 const meal = assigned ? assigned[0] : null;
+                const mealInfo = assigned ? assigned[1] : null;
+                const cook = (mealInfo && mealInfo.cook) ? mealInfo.cook : 'Russel';
 
                 return `
                     <div class="day-card">
                         <h3>${day}</h3>
                         <div class="day-content ${meal ? '' : 'unassigned'}">
-                            ${meal ? `<div class="meal-name">${meal}</div><div class="cook-name">→ Russel</div>` : 'Not planned'}
+                            ${meal ? `
+                                <div class="meal-name">${meal}</div>
+                                <select data-meal="${meal}" onchange="updateCook(this)" style="width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid #e0dcd7; font-size: 12px; margin-top: 6px; background: white; color: #1a2633;">
+                                    <option value="Russel" ${cook === 'Russel' ? 'selected' : ''}>Russel</option>
+                                    <option value="Caitlin" ${cook === 'Caitlin' ? 'selected' : ''}>Caitlin</option>
+                                </select>
+                            ` : 'Not planned'}
                         </div>
                     </div>
                 `;
