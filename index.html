@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Meal Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f9f7f4 0%, #f5f2ed 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a2633 0%, #2d3e4f 100%);
+            padding: 1.5rem 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f9f7f4;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #a8b5c4;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 24px;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(122, 155, 127, 0.15);
+            background: rgba(255,255,255,0.4);
+            overflow-x: auto;
+        }
+
+        .tabs button {
+            padding: 8px 0;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #8a9aaa;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+
+        .tabs button.active {
+            border-bottom-color: #7a9b7f;
+            color: #1a2633;
+            font-weight: 500;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1.25rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Recipes Tab */
+        .search-box {
+            margin-bottom: 1.5rem;
+            position: sticky;
+            top: 0;
+            background: linear-gradient(135deg, #f9f7f4 0%, #f5f2ed 100%);
+            padding-bottom: 1rem;
+            z-index: 10;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #e0dcd7;
+            font-size: 14px;
+            background: white;
+        }
+
+        .recipes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .recipe-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #e0dcd7;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .recipe-item input[type="checkbox"] {
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #7a9b7f;
+        }
+
+        .recipe-info {
+            flex: 1;
+        }
+
+        .recipe-item h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a2633;
+            margin-bottom: 2px;
+        }
+
+        .recipe-item p {
+            font-size: 12px;
+            color: #8a9aaa;
+            margin: 0;
+        }
+
+        /* Shortlist Tab */
+        .shortlist-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .shortlist-item {
+            background: white;
+            border-radius: 8px;
+            padding: 14px;
+            border: 1px solid #e0dcd7;
+        }
+
+        .shortlist-item h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a2633;
+            margin-bottom: 10px;
+        }
+
+        .shortlist-item select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #e0dcd7;
+            font-size: 13px;
+            background: white;
+            color: #1a2633;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #8a9aaa;
+        }
+
+        /* This Week Tab */
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .day-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #e0dcd7;
+            min-height: 120px;
+        }
+
+        .day-card h3 {
+            font-size: 12px;
+            font-weight: 600;
+            color: #8a9aaa;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .day-content {
+            font-size: 13px;
+            color: #1a2633;
+            line-height: 1.5;
+        }
+
+        .day-content.unassigned {
+            color: #8a9aaa;
+            font-style: italic;
+        }
+
+        .day-content .meal-name {
+            font-weight: 600;
+            color: #1a2633;
+        }
+
+        .day-content .cook-name {
+            font-size: 12px;
+            color: #7a9b7f;
+            margin-top: 4px;
+        }
+
+        .shopping-section {
+            background: linear-gradient(135deg, rgba(122, 155, 127, 0.08) 0%, rgba(193, 122, 74, 0.04) 100%);
+            border: 1px solid #7a9b7f;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-top: 2rem;
+        }
+
+        .shopping-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a2633;
+            margin-bottom: 12px;
+        }
+
+        .shopping-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .shopping-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .shopping-list input[type="checkbox"] {
+            cursor: pointer;
+            accent-color: #7a9b7f;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Weekly Meal Planner</h1>
+        <p>Pick recipes, plan the week, reduce friction</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="recipes">Recipes</button>
+        <button class="tab-btn" data-tab="shortlist">Shortlist</button>
+        <button class="tab-btn" data-tab="week">This Week</button>
+    </div>
+
+    <div class="content">
+        <!-- Recipes Tab -->
+        <div id="recipes" class="tab-content active">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search recipes...">
+            </div>
+            <div class="recipes-list" id="recipesList"></div>
+        </div>
+
+        <!-- Shortlist Tab -->
+        <div id="shortlist" class="tab-content">
+            <div class="shortlist-container" id="shortlistContainer"></div>
+        </div>
+
+        <!-- This Week Tab -->
+        <div id="week" class="tab-content">
+            <div class="week-grid" id="weekGrid"></div>
+            <div class="shopping-section">
+                <h3>Shopping List</h3>
+                <ul class="shopping-list" id="shoppingList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Recipe data
+        const recipes = [
+            { name: 'Shakshuka With Feta & Crunchy Pitta', category: 'Vegetarian', protein: 'None', ingredients: 'eggs, feta, tomato sauce, pitta' },
+            { name: 'Chow Mein Stir-Fry Base', category: 'Asian', protein: 'Mixed', ingredients: 'noodles, vegetables, soy sauce' },
+            { name: 'Spaghetti Bolognese', category: 'Pasta', protein: 'Meat', ingredients: 'pasta, ground beef, tomato sauce' },
+            { name: 'Mac and Cheese', category: 'Pasta', protein: 'None', ingredients: 'pasta, cheese, butter, milk' },
+            { name: 'Pizza', category: 'Quick', protein: 'None', ingredients: 'dough, tomato sauce, cheese, toppings' },
+            { name: 'Greek Salad', category: 'Mediterranean', protein: 'Meat', ingredients: 'feta, tomatoes, cucumbers, olives' },
+            { name: 'Mexican Wraps', category: 'World', protein: 'Chicken', ingredients: 'wraps, chicken, beans, salsa' },
+            { name: 'Fish and Chips', category: 'Fish', protein: 'Fish', ingredients: 'fish, potatoes, flour, oil' },
+            { name: 'Indian Takeaway', category: 'Takeaway', protein: 'Mixed', ingredients: 'rice, curry sauce, vegetables' },
+            { name: 'Pasta with Sauce', category: 'Pasta', protein: 'None', ingredients: 'pasta, tomato sauce, garlic' },
+            { name: 'Halloumi Kebab', category: 'Vegetarian', protein: 'None', ingredients: 'halloumi, vegetables, skewers' },
+            { name: 'Chicken and Rice', category: 'Chicken', protein: 'Chicken', ingredients: 'chicken, rice, vegetables' },
+            { name: 'Pan Fried Cod', category: 'Fish', protein: 'Fish', ingredients: 'cod, tomato, capers, herbs' },
+            { name: 'Sweet Potato Curry', category: 'Vegetarian', protein: 'None', ingredients: 'sweet potato, coconut milk, curry spice' },
+            { name: 'Smoked Fish Linguine', category: 'Fish', protein: 'Fish', ingredients: 'linguine, smoked fish, spinach, cream' },
+            { name: 'Ramen', category: 'Asian', protein: 'Mixed', ingredients: 'noodles, broth, vegetables, egg' }
+        ];
+
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        let shortlist = [];
+        let assignments = {};
+
+        // Initialize
+        function init() {
+            loadFromStorage();
+            renderRecipes();
+            setupTabs();
+        }
+
+        function setupTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+                    e.target.classList.add('active');
+                    document.getElementById(e.target.dataset.tab).classList.add('active');
+
+                    if (e.target.dataset.tab === 'shortlist') renderShortlist();
+                    if (e.target.dataset.tab === 'week') renderWeek();
+                });
+            });
+        }
+
+        function renderRecipes() {
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const filtered = recipes.filter(r => r.name.toLowerCase().includes(searchTerm));
+            const container = document.getElementById('recipesList');
+
+            container.innerHTML = filtered.map((recipe, idx) => `
+                <div class="recipe-item">
+                    <input type="checkbox" class="recipe-checkbox" data-index="${idx}" ${shortlist.includes(recipe.name) ? 'checked' : ''}>
+                    <div class="recipe-info">
+                        <h4>${recipe.name}</h4>
+                        <p>${recipe.category} • ${recipe.protein}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.recipe-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateShortlist);
+            });
+
+            document.getElementById('searchInput')?.addEventListener('input', renderRecipes);
+        }
+
+        function updateShortlist() {
+            shortlist = [];
+            document.querySelectorAll('.recipe-checkbox:checked').forEach(cb => {
+                const idx = cb.dataset.index;
+                shortlist.push(recipes[idx].name);
+            });
+            saveToStorage();
+        }
+
+        function renderShortlist() {
+            const container = document.getElementById('shortlistContainer');
+
+            if (shortlist.length === 0) {
+                container.innerHTML = '<div class="empty-state">No recipes ticked yet. Go to Recipes tab to tick some.</div>';
+                return;
+            }
+
+            container.innerHTML = shortlist.map(meal => `
+                <div class="shortlist-item">
+                    <h4>${meal}</h4>
+                    <select data-meal="${meal}" onchange="updateAssignment(this)">
+                        <option value="">Not assigned</option>
+                        ${days.map(day => `<option value="${day}" ${assignments[meal] === day ? 'selected' : ''}>${day}</option>`).join('')}
+                    </select>
+                </div>
+            `).join('');
+        }
+
+        function updateAssignment(select) {
+            const meal = select.dataset.meal;
+            if (select.value) {
+                assignments[meal] = select.value;
+            } else {
+                delete assignments[meal];
+            }
+            saveToStorage();
+        }
+
+        function renderWeek() {
+            const grid = document.getElementById('weekGrid');
+
+            grid.innerHTML = days.map(day => {
+                const assigned = Object.entries(assignments).find(([_, d]) => d === day);
+                const meal = assigned ? assigned[0] : null;
+
+                return `
+                    <div class="day-card">
+                        <h3>${day}</h3>
+                        <div class="day-content ${meal ? '' : 'unassigned'}">
+                            ${meal ? `<div class="meal-name">${meal}</div><div class="cook-name">→ Russel</div>` : 'Not planned'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            renderShoppingList();
+        }
+
+        function renderShoppingList() {
+            const assignedMeals = Object.keys(assignments);
+            const ingredients = new Set();
+
+            assignedMeals.forEach(mealName => {
+                const recipe = recipes.find(r => r.name === mealName);
+                if (recipe) {
+                    recipe.ingredients.split(',').forEach(ing => ingredients.add(ing.trim()));
+                }
+            });
+
+            const list = document.getElementById('shoppingList');
+            list.innerHTML = Array.from(ingredients).map(ing => `
+                <li><input type="checkbox"> <label>${ing}</label></li>
+            `).join('');
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('meal-shortlist', JSON.stringify(shortlist));
+            localStorage.setItem('meal-assignments', JSON.stringify(assignments));
+        }
+
+        function loadFromStorage() {
+            shortlist = JSON.parse(localStorage.getItem('meal-shortlist') || '[]');
+            assignments = JSON.parse(localStorage.getItem('meal-assignments') || '{}');
+        }
+
+        init();
+    </script>
+</body>
+</html>
