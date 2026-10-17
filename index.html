@@ -985,20 +985,75 @@
         }
 
         function renderShoppingList() {
-            const assignedMeals = Object.keys(assignments);
-            const ingredients = new Set();
+            const assignedMeals = Object.keys(assignments).filter(m => assignments[m].day);
+            const customItems = JSON.parse(localStorage.getItem('custom-shopping-items') || '[]');
 
+            let html = '';
+
+            // Group ingredients by recipe
             assignedMeals.forEach(mealName => {
                 const recipe = recipes.find(r => r.name === mealName);
                 if (recipe) {
-                    recipe.ingredients.split(',').forEach(ing => ingredients.add(ing.trim()));
+                    html += `<div style="margin-bottom: 16px;">
+                        <h4 style="font-size: 13px; font-weight: 600; color: #7a9b7f; margin-bottom: 8px;">📋 ${mealName}</h4>
+                        <ul style="list-style: none; padding-left: 0;">`;
+
+                    recipe.ingredients.split(',').forEach(ing => {
+                        const trimmed = ing.trim();
+                        html += `<li style="display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px;">
+                            <input type="checkbox" class="shopping-item"> <label>${trimmed}</label>
+                        </li>`;
+                    });
+                    html += `</ul></div>`;
                 }
             });
 
-            const list = document.getElementById('shoppingList');
-            list.innerHTML = Array.from(ingredients).map(ing => `
-                <li><input type="checkbox"> <label>${ing}</label></li>
-            `).join('');
+            // Custom items section
+            if (customItems.length > 0) {
+                html += `<div style="margin-bottom: 16px; border-top: 1px solid #e0dcd7; padding-top: 12px;">
+                    <h4 style="font-size: 13px; font-weight: 600; color: #7a9b7f; margin-bottom: 8px;">✏️ Custom Items</h4>
+                    <ul style="list-style: none; padding-left: 0;">`;
+
+                customItems.forEach((item, idx) => {
+                    html += `<li style="display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px;">
+                        <input type="checkbox" class="shopping-item">
+                        <label>${item}</label>
+                        <button onclick="removeCustomItem(${idx})" style="margin-left: auto; background: none; border: none; color: #c0786a; cursor: pointer; font-size: 18px;">×</button>
+                    </li>`;
+                });
+                html += `</ul></div>`;
+            }
+
+            // Add custom item input
+            html += `<div style="margin-top: 16px; border-top: 1px solid #e0dcd7; padding-top: 12px;">
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="customItemInput" placeholder="Add milk, bread, etc." style="flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid #e0dcd7; font-size: 13px;">
+                    <button onclick="addCustomItem()" style="padding: 8px 14px; background: #7a9b7f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Add</button>
+                </div>
+            </div>`;
+
+            document.getElementById('shoppingList').innerHTML = `<div>${html}</div>`;
+        }
+
+        function addCustomItem() {
+            const input = document.getElementById('customItemInput');
+            const item = input.value.trim();
+            if (!item) return;
+
+            let customItems = JSON.parse(localStorage.getItem('custom-shopping-items') || '[]');
+            if (!customItems.includes(item)) {
+                customItems.push(item);
+                localStorage.setItem('custom-shopping-items', JSON.stringify(customItems));
+                input.value = '';
+                renderWeek();
+            }
+        }
+
+        function removeCustomItem(index) {
+            let customItems = JSON.parse(localStorage.getItem('custom-shopping-items') || '[]');
+            customItems.splice(index, 1);
+            localStorage.setItem('custom-shopping-items', JSON.stringify(customItems));
+            renderWeek();
         }
 
         function saveToStorage() {
