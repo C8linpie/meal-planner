@@ -82,21 +82,98 @@
         }
 
         /* Recipes Tab */
-        .search-box {
+        .filter-row {
+            display: flex;
+            gap: 12px;
             margin-bottom: 1.5rem;
-            position: sticky;
-            top: 0;
-            background: linear-gradient(135deg, #f9f7f4 0%, #f5f2ed 100%);
-            padding-bottom: 1rem;
-            z-index: 10;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-group label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8a9aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #e0dcd7;
+            font-size: 13px;
+            background: white;
+            color: #1a2633;
+            min-width: 140px;
+        }
+
+        .protein-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .protein-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            border: 2px solid #e0dcd7;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+            color: #1a2633;
+            font-size: 22px;
+        }
+
+        .protein-btn:hover {
+            border-color: #7a9b7f;
+            background: #f5f2ed;
+        }
+
+        .protein-btn.active {
+            background: #7a9b7f;
+            border-color: #7a9b7f;
+            color: white;
+        }
+
+        .protein-btn svg {
+            width: 28px;
+            height: 28px;
+            stroke: currentColor;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .search-box label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8a9aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .search-box input {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 8px;
+            padding: 8px 10px;
+            border-radius: 6px;
             border: 1px solid #e0dcd7;
-            font-size: 14px;
+            font-size: 13px;
             background: white;
         }
 
@@ -106,37 +183,73 @@
             gap: 10px;
         }
 
-        .recipe-item {
-            background: white;
-            border-radius: 8px;
-            padding: 12px;
-            border: 1px solid #e0dcd7;
-            display: flex;
-            align-items: flex-start;
+        #recipesList {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
         }
 
-        .recipe-item input[type="checkbox"] {
-            margin-top: 2px;
-            cursor: pointer;
-            accent-color: #7a9b7f;
+        @media (max-width: 768px) {
+            #recipesList {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .recipe-info {
+        .recipe-item {
+            background: white;
+            border-radius: 8px;
+            padding: 14px;
+            border: 1px solid #e0dcd7;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .recipe-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .recipe-item-title {
             flex: 1;
         }
 
         .recipe-item h4 {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             color: #1a2633;
-            margin-bottom: 2px;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
         }
 
-        .recipe-item p {
-            font-size: 12px;
+        .recipe-protein-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .recipe-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #f5f2ed;
             color: #8a9aaa;
-            margin: 0;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .recipe-item input[type="checkbox"] {
+            cursor: pointer;
+            accent-color: #7a9b7f;
+            width: 18px;
+            height: 18px;
         }
 
         /* Shortlist Tab */
@@ -255,6 +368,111 @@
             cursor: pointer;
             accent-color: #7a9b7f;
         }
+
+        /* Recipe Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #8a9aaa;
+        }
+
+        .modal-close:hover {
+            color: #1a2633;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a2633;
+            margin-bottom: 12px;
+            margin-right: 32px;
+        }
+
+        .modal-meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .modal-badge {
+            background: #f5f2ed;
+            color: #8a9aaa;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #8a9aaa;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-section p, .modal-section ul {
+            font-size: 14px;
+            color: #1a2633;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .modal-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .modal-section li {
+            padding: 4px 0;
+        }
+
+        .modal-section li:before {
+            content: "• ";
+            color: #7a9b7f;
+            font-weight: 600;
+            margin-right: 6px;
+        }
     </style>
 </head>
 <body>
@@ -272,9 +490,35 @@
     <div class="content">
         <!-- Recipes Tab -->
         <div id="recipes" class="tab-content active">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search recipes...">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="categoryFilter">Category</label>
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Protein</label>
+                    <div class="protein-filters" id="proteinFilters"></div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="timeFilter">Time</label>
+                    <select id="timeFilter">
+                        <option value="">All Times</option>
+                        <option value="quick">Under 20 mins</option>
+                        <option value="medium">20-30 mins</option>
+                        <option value="long">30+ mins</option>
+                    </select>
+                </div>
+
+                <div class="search-box">
+                    <label for="searchInput">Search</label>
+                    <input type="text" id="searchInput" placeholder="Recipe name...">
+                </div>
             </div>
+
             <div class="recipes-list" id="recipesList"></div>
         </div>
 
@@ -293,37 +537,179 @@
         </div>
     </div>
 
+    <!-- Recipe Modal -->
+    <div id="recipeModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeRecipeModal()">×</button>
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <div class="modal-meta" id="modalMeta"></div>
+
+            <div class="modal-section">
+                <h3>Servings</h3>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <label style="font-size: 13px; color: #8a9aaa;">Serves:</label>
+                    <select id="modalServings" onchange="updateModalIngredients()" style="padding: 8px 10px; border-radius: 6px; border: 1px solid #e0dcd7; font-size: 13px; background: white; color: #1a2633; min-width: 100px;">
+                        <option value="2">2 people</option>
+                        <option value="3" selected>3 people</option>
+                        <option value="4">4 people</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <h3>Ingredients</h3>
+                <ul id="modalIngredients" style="list-style: none; padding: 0;"></ul>
+            </div>
+
+            <div class="modal-section" id="pantrySection" style="display: none;">
+                <h3>Pantry Items</h3>
+                <p id="modalPantry"></p>
+            </div>
+
+            <div class="modal-section" id="instructionsSection" style="display: none;">
+                <h3>Instructions</h3>
+                <p id="modalInstructions"></p>
+            </div>
+
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 20px;">
+                <input type="checkbox" id="modalCheckbox" onchange="updateShortlistFromModal()">
+                <span style="font-size: 13px; color: #7a9b7f; font-weight: 500;">Add to shortlist</span>
+            </label>
+        </div>
+    </div>
+
     <script>
-        // Recipe data
-        const recipes = [
-            { name: 'Shakshuka With Feta & Crunchy Pitta', category: 'Vegetarian', protein: 'None', ingredients: 'eggs, feta, tomato sauce, pitta' },
-            { name: 'Chow Mein Stir-Fry Base', category: 'Asian', protein: 'Mixed', ingredients: 'noodles, vegetables, soy sauce' },
-            { name: 'Spaghetti Bolognese', category: 'Pasta', protein: 'Meat', ingredients: 'pasta, ground beef, tomato sauce' },
-            { name: 'Mac and Cheese', category: 'Pasta', protein: 'None', ingredients: 'pasta, cheese, butter, milk' },
-            { name: 'Pizza', category: 'Quick', protein: 'None', ingredients: 'dough, tomato sauce, cheese, toppings' },
-            { name: 'Greek Salad', category: 'Mediterranean', protein: 'Meat', ingredients: 'feta, tomatoes, cucumbers, olives' },
-            { name: 'Mexican Wraps', category: 'World', protein: 'Chicken', ingredients: 'wraps, chicken, beans, salsa' },
-            { name: 'Fish and Chips', category: 'Fish', protein: 'Fish', ingredients: 'fish, potatoes, flour, oil' },
-            { name: 'Indian Takeaway', category: 'Takeaway', protein: 'Mixed', ingredients: 'rice, curry sauce, vegetables' },
-            { name: 'Pasta with Sauce', category: 'Pasta', protein: 'None', ingredients: 'pasta, tomato sauce, garlic' },
-            { name: 'Halloumi Kebab', category: 'Vegetarian', protein: 'None', ingredients: 'halloumi, vegetables, skewers' },
-            { name: 'Chicken and Rice', category: 'Chicken', protein: 'Chicken', ingredients: 'chicken, rice, vegetables' },
-            { name: 'Pan Fried Cod', category: 'Fish', protein: 'Fish', ingredients: 'cod, tomato, capers, herbs' },
-            { name: 'Sweet Potato Curry', category: 'Vegetarian', protein: 'None', ingredients: 'sweet potato, coconut milk, curry spice' },
-            { name: 'Smoked Fish Linguine', category: 'Fish', protein: 'Fish', ingredients: 'linguine, smoked fish, spinach, cream' },
-            { name: 'Ramen', category: 'Asian', protein: 'Mixed', ingredients: 'noodles, broth, vegetables, egg' }
+        // Recipe data from Notion with detailed ingredients, instructions and serving sizes
+        let recipes = [
+            { name: 'Asian-Style Baked Cod en Papillote', category: 'Asian', protein: 'Fish', time: '30 mins', defaultServings: 3, ingredients: '3 cod fillets, 1 thumb-sized piece fresh ginger, 2 garlic cloves, 1 red chilli, 1 bunch spring onions, 1–2 fresh limes, 3–4 heads pak choi, 225g jasmine rice', instructions: '1. Rinse and cook the jasmine rice, then rest for 5 minutes.\n2. Heat oven to 200°C (180°C fan) / Gas Mark 6.\n3. Mix soy sauce, ginger, garlic, chilli and lime juice.\n4. Build three sealed parcels with spring onions, cod and sauce.\n5. Bake for 12–15 minutes, until the fish is opaque and flakes easily.\n6. Sear pak choi cut-side down for 1 minute, add water, cover and steam for 3–4 minutes.\n7. Serve cod with rice and pak choi; pour over the cooking juices and add lime wedges.' },
+            { name: 'Aubergine Parmigiana with Pesto Bruschetta', category: 'Mediterranean', protein: 'Vegetarian', time: '45 mins', defaultServings: 3, ingredients: '2 aubergines, 40g basil, 4 ciabatta rolls, 2 onions, 2 × 200g chopped tomatoes, 250g mozzarella, 60g grated Italian hard cheese', instructions: '1. Slice and brown the aubergines; set aside.\n2. Soften onion, add garlic, tomato paste, oregano and sugar.\n3. Add tomatoes, stock and half the basil; simmer until thick.\n4. Layer aubergine and sauce; top with mozzarella and hard cheese.\n5. Bake at 200°C (180°C fan) for 15–20 minutes.\n6. Make basil pesto and spread over ciabatta; bake for 5 minutes.\n7. Serve the parmigiana with pesto bruschetta.' },
+            { name: 'Beef Stir Fry', category: 'Asian', protein: 'Meat', time: '25 mins', defaultServings: 3, ingredients: '450g beef strips, 2 peppers, 300g broccoli, 100ml soy sauce, 30g fresh ginger', instructions: 'Heat wok or large pan over high heat. Add oil and cook beef strips until browned (3-4 mins). Remove and set aside. Stir-fry peppers and broccoli (4-5 mins). Return beef, add soy sauce and ginger. Toss to combine and serve.' },
+            { name: 'Buffalo Halloumi Shawarma Kebab', category: 'World', protein: 'Vegetarian', time: '42 mins', defaultServings: 3, ingredients: '200g halloumi, 2 garlic cloves, 1 red onion, 1 gem lettuce, 2 tomatoes, 25ml mayonnaise, 8ml sriracha, 2 sourdough pittas', instructions: '1. Preheat the oven to 220°C / 200°C fan / Gas 7. Chop the garlic, cut half the red onion into wedges and slice the halloumi into sticks.\n2. Mix the smoked paprika, oregano, half the garlic, olive oil and pepper. Coat the onion wedges and halloumi.\n3. Roast on a baking-paper-lined tray for 12–15 minutes until cooked and slightly charred.\n4. Slice the remaining onion and combine with half the vinegar and 1 tsp sugar for the pickled red onion.\n5. Shred the lettuce, slice half the tomato into rounds and dice the rest.\n6. Mix the remaining vinegar and garlic with the mayo for the toum sauce.\n7. Microwave the sriracha with a knob of butter and pepper for 10–20 seconds, then mix for the buffalo sauce.\n8. Toss the diced tomato and lettuce with the pickled onion and a drizzle of olive oil.\n9. Toast the pittas, open them out and fill with tomato rounds and halloumi. Drizzle with buffalo and toum sauces, roll up and wrap in baking paper. Serve with the salad.' },
+            { name: 'Butternut & Feta Lasagne', category: 'Pasta', protein: 'Vegetarian', time: '75 mins', defaultServings: 4, ingredients: '1 medium butternut squash (1kg), 250g lasagne sheets, 2 × 400g jars passata, 700ml milk, 200g feta, 1 × 125g ball buffalo mozzarella, 150g grated mozzarella, 50g parmesan', instructions: '1. Cube the squash and air-fry at 190°C for 15–20 minutes, then mash lightly.\n2. Make a roux with butter and flour; gradually whisk in milk and season.\n3. Season the passata with sugar, herbs, salt and pepper.\n4. Layer passata, pasta, squash, white sauce and cheeses.\n5. Cover and bake at 190°C (170°C fan) for 25 minutes.\n6. Uncover and bake for 10–15 minutes; rest 10 minutes.' },
+            { name: 'Butternut & Spinach Lasagna', category: 'Pasta', protein: 'Vegetarian', time: '75 mins', defaultServings: 4, ingredients: '1 medium butternut squash (1kg), 2 × 400g jars basil tomato sauce, 250g fresh spinach, 250g dried no-boil lasagne sheets, 625ml milk, 150g grated mozzarella, 50g grated parmesan', instructions: '1. Heat the oven to 200°C (180°C fan). Toss the squash with 1 tbsp olive oil, salt and pepper. Roast for 20–25 minutes until tender.\n2. Wilt the spinach in a large pan, then drain and squeeze out excess moisture.\n3. Melt the olive spread in a saucepan. Stir in the flour and cook for 1–2 minutes. Gradually whisk in the milk, then simmer for 3–5 minutes until smooth and thickened. Season with salt, pepper and nutmeg.\n4. Reduce the oven to 190°C (170°C fan). In a roughly 20 × 30cm baking dish, spread a thin layer of tomato sauce. Add lasagne sheets, half the squash and spinach, then some tomato sauce and béchamel. Repeat with another layer of sheets and the remaining vegetables and more sauce.\n5. Finish with a final layer of sheets, the remaining tomato sauce and béchamel, covering the pasta completely. Sprinkle with mozzarella and parmesan.\n6. Bake for 30–35 minutes until bubbling and golden and the pasta is tender when pierced. If the top browns before the pasta is cooked, cover loosely with foil.\n7. Rest for 10–15 minutes before slicing into 6 portions.' },
+            { name: 'Chicken a la King', category: 'Chicken', protein: 'Chicken', time: '25 mins', defaultServings: 3, ingredients: '400g cooked chicken breasts, 200g mushrooms, 1 green pepper, 100g pimento, 200ml milk', instructions: '1. Melt butter; cook mushrooms and green pepper for 5 minutes.\n2. Remove from heat and stir in flour, salt and pepper.\n3. Cook over low heat until bubbling.\n4. Stir in milk, water, bouillon and reserved mushroom liquid.\n5. Bring to the boil, stirring; cook for 1 minute.\n6. Stir in chicken and pimento and heat through.' },
+            { name: 'Chilli & Garlic Spaghetti With Mozzarella Garlic Bread', category: 'Pasta', protein: 'Vegetarian', time: '45 mins', defaultServings: 3, ingredients: '400g spaghetti, 6 garlic cloves, 2 tsp chilli flakes, 400g chopped tomatoes, 150g mozzarella, 1 brown onion, 2 ciabatta rolls', instructions: '1. Crush the garlic. Heat olive oil and butter in a pot and cook the garlic with most of the basil and the chilli flakes for 1–2 minutes until fragrant.\n2. Preheat the oven to 200°C / 180°C fan / Gas 6. Blitz the garlic and basil mix in a food processor until smooth to make the garlic & basil oil.\n3. Brown the onion halves cut-side down in butter for 2–3 minutes.\n4. Add the tomatoes, stock mix, 1 tsp sugar and 150ml boiled water. Simmer with the lid on for 12–15 minutes until thickened.\n5. Score the ciabatta, spoon over half the basil oil and bake for 8–10 minutes until golden.\n6. Cook the spaghetti for 7–9 minutes and drain. Discard the onion halves from the sauce, then add the spaghetti, remaining basil oil, half the cheese, salt and pepper and mix.\n7. Top the ciabatta with torn mozzarella and return to the oven for 2–3 minutes until melted.\n8. Serve the spaghetti topped with the rest of the cheese and basil, with the garlic bread.' },
+            { name: 'Chilli Paneer Masala With Brown Rice And Naan', category: 'Asian', protein: 'Vegetarian', time: '45 mins', defaultServings: 3, ingredients: '200g paneer, 280g cooked brown rice, 2 mini naans, 80g natural yoghurt, 2 tomatoes', instructions: '1. Heat vegetable oil in a large wide non-stick pan with a lid over a medium-high heat.\n2. Chop the paneer into bite-sized pieces and cook for 3 minutes, turning once, until golden.\n3. Squeeze the rice pouches to separate the grains, tear a corner and microwave for 2 minutes until piping hot.\n4. Chop the tomatoes into wedges.\n5. Add the curry powder and cayenne to the paneer for 10 seconds, then the tomato paste and wedges for 1 minute.\n6. Add the spinach with a splash of cold water, cover and cook for 1–2 minutes until wilted.\n7. Remove from the heat and stir through the yoghurt.\n8. Warm the naans in a toaster for 1–2 minutes. Serve the paneer masala with the rice and naan.' },
+            { name: 'Creamy Chicken Potato-Topped Pie', category: 'Chicken', protein: 'Chicken', time: '40 mins', defaultServings: 4, ingredients: '600g chicken, 800g potatoes, 3 leeks, 3 carrots, 200g spring greens, 150ml soft cheese', instructions: '1. Cut 8 potatoes into small chunks. Microwave in a large bowl with 4–6 tbsp water and a vented lid for 12 minutes on high, stirring halfway, then in 2-minute bursts until soft.\n2. Cut 500g chicken into bite-sized pieces, coat lightly with oil and season. Air-fry at 190°C for approximately 10–14 minutes, turning halfway, until cooked through.\n3. Finely slice 2 washed leeks and dice or grate 2 carrots. Soften in 30g butter with a pinch of salt for 5–7 minutes.\n4. Chop 4 garlic cloves. Dissolve 2 stock cubes in 500ml boiled water and mix in 11g Dijon. Add half the garlic and 2 tbsp flour to the veg for 30 seconds, then stir in the stock and 100g soft cheese. Simmer for 4–6 minutes until thickened.\n5. Drain the soft potatoes and mash with butter, milk, salt and pepper to taste. Stir the cooked chicken into the sauce and keep hot.\n6. Shred 300g spring greens, removing tough stalks. Cook in butter with the remaining garlic for 3–5 minutes until tender. Serve alongside.' },
+            { name: 'Lemony Smoked Fish & Spinach Linguine', category: 'Pasta', protein: 'Fish', time: '20 mins', defaultServings: 3, ingredients: '380g linguine, 4 garlic cloves, 2 lemons, 4 × 100g smoked basa fillets, 160g baby spinach, 100g soft cheese, 30ml rice wine, 10g chives', instructions: '1. Cook the linguine in salted boiling water for 8–10 minutes until al dente. Reserve 150ml pasta water, then drain.\n2. Peel and finely slice the garlic. Gently cook it in olive oil for 1 minute, then remove the pan from the heat to infuse.\n3. Cut the smoked basa into bite-sized pieces and finely chop the chives.\n4. Return the garlic oil to medium heat. Add the basa and cook for 3–5 minutes until cooked through.\n5. Zest 1 lemon. Cut the remaining lemon into wedges.\n6. Add the rice wine, soft cheese and 150ml reserved pasta water to the fish. Cook for 2 minutes, then add the spinach and juice of the zested lemon. Season and cook for 1–2 minutes until wilted.\n7. Toss through the drained linguine. Serve topped with lemon zest and chives, with lemon wedges and a drizzle of olive oil.' },
+            { name: 'Mediterranean-Style Vegetable Lasagne', category: 'Pasta', protein: 'Vegetarian', time: '95 mins', defaultServings: 4, ingredients: '1 aubergine, 1 courgette, 1 pepper, 390g finely chopped tomatoes, 120g lasagne sheets, 20g Italian hard cheese, 10g basil, 2 garlic cloves', instructions: '1. Preheat the oven to 220°C / 200°C fan / Gas 7 and boil half a kettle. Deseed the pepper and cut it, the aubergine and the courgette into bite-sized pieces. Chop the garlic.\n2. Brown the vegetables in olive oil with a pinch of salt for 8–10 minutes.\n3. Melt 30g butter, stir in 30g flour for 1–2 minutes to make a roux. Whisk in 300ml milk and cook for 5 minutes until smooth and thick.\n4. Off the heat, stir half the grated cheese into the sauce for the cheese sauce.\n5. Add the garlic, tomato paste, 1 tsp sugar, chopped tomatoes and 100ml boiled water to the vegetables and cook for 3–4 minutes. Add the chopped basil stalks.\n6. Layer vegetable sauce and lasagne sheets in an oven-proof dish, finishing with a layer of sheets.\n7. Top with the cheese sauce and the remaining grated cheese. Bake for 30–35 minutes until cooked.\n8. Rest, then serve garnished with torn basil leaves.' },
+            { name: 'Pan-fried cod with tomato and caper relish', category: 'Mediterranean', protein: 'Fish', time: '20 mins', defaultServings: 3, ingredients: '400g cod fillets, 400g tomatoes, 50g capers, 50ml olive oil, 4 garlic cloves', instructions: 'Pan-fry cod fillets in olive oil (4-5 mins each side). Set aside. Sauté diced tomatoes and capers in the same pan (3-4 mins). Add garlic and simmer (2 mins). Serve cod topped with tomato caper relish.' },
+            { name: 'Paneer korma recipe', category: 'Asian', protein: 'Vegetarian', time: '30 mins', defaultServings: 3, ingredients: '225g paneer, 1 onion, 1 thumb-sized piece ginger, 2 garlic cloves, 500ml vegetable stock, 150g spinach, 100g Greek yogurt', instructions: '1. Fry the paneer in 1 tbsp oil for 5 minutes; set aside.\n2. Blend onion, ginger and garlic with a splash of water.\n3. Cook the onion mixture in the remaining oil for 10 minutes.\n4. Add korma paste and cardamom; cook for 1 minute.\n5. Add almonds, then stock; simmer for 5–10 minutes.\n6. Add spinach and cook for 5 minutes.\n7. Stir in yogurt and paneer; season and serve.' },
+            { name: 'Pork Chops with Apple Sauce', category: 'Easy', protein: 'Meat', time: '30 mins', defaultServings: 3, ingredients: '3 pork chops (150g each), 3 apples, 20g fresh herbs, 50g butter', instructions: 'Pan-fry pork chops in butter (5-6 mins per side) until cooked through. Set aside. Peel and chop apples, cook in the same pan with herbs (5-7 mins) until soft. Serve chops with apple sauce.' },
+            { name: 'Quesadillas: Three-Cheese Corn with Tangy Chive Salad', category: 'World', protein: 'Vegetarian', time: '40 mins', defaultServings: 3, ingredients: '80g cheddar, 60g feta, 100g soft cheese, 320g sweetcorn, 12 plain tortillas, 2 gem lettuces, 2 red onions, 2 limes, 10g chives', instructions: '1. Mix onion, cheddar, feta, sweetcorn, stock, chilli and paprika.\n2. Mix vinegar with a drizzle of olive oil.\n3. Fill and fold tortillas; place between two trays.\n4. Bake at 220°C (200°C fan) for 25–30 minutes.\n5. Toast the seed mix.\n6. Mix soft cheese, chives, lime, olive oil and salt for dressing.\n7. Brush quesadillas with smoky oil and serve with dressed lettuce and seeds.' },
+            { name: 'Ramen', category: 'Asian', protein: 'Vegetarian', time: '25 mins', defaultServings: 3, ingredients: '2 packs instant ramen noodles, 1oz dried shiitake mushrooms, 1/2 cup scallions, 2 cups chopped kale, 1 cup shredded carrots, 4 cups vegetable broth', instructions: '1. Heat sesame oil; cook garlic and ginger for 2 minutes.\n2. Add broth, water and mushrooms; simmer for 10 minutes.\n3. Add noodles and cook for 5 minutes.\n4. Stir in scallions, kale and carrots.\n5. Serve with any optional additions you choose.' },
+            { name: 'Ramen noodle soup', category: 'Asian', protein: 'Chicken', time: '40 mins', defaultServings: 3, ingredients: '700ml chicken stock, 3 garlic cloves, 1 thumb-sized piece ginger, 375g ramen noodles, 400g cooked chicken breast, 100g baby spinach, 4 tbsp sweetcorn, 4 boiled eggs', instructions: '1. Simmer stock, garlic, soy sauce, Worcestershire sauce, ginger, spices and water for 5 minutes.\n2. Adjust seasoning with sugar or soy sauce.\n3. Cook and drain the noodles.\n4. Fry sliced cooked chicken in sesame oil.\n5. Divide noodles, chicken, spinach, sweetcorn and eggs between bowls.\n6. Strain and reboil the stock; pour into bowls.\n7. Finish with nori, spring onions and sesame seeds.' },
+            { name: 'Roast chicken', category: 'Chicken', protein: 'Chicken', time: '90 mins', defaultServings: 4, ingredients: '1.8kg whole chicken, 20g fresh herbs, 50g butter, 2 lemons', instructions: 'Preheat oven to 200°C. Rub chicken with butter, herbs, salt and pepper. Stuff cavity with lemon halves. Roast 1.5-2 hours (20 mins per 500g). Baste halfway. Rest 10 mins before serving.' },
+            { name: 'Roasted Butternut squash with honey seasoning, red onion & feta', category: 'Mediterranean', protein: 'Vegetarian', time: '45 mins', defaultServings: 3, ingredients: '800g-1kg butternut squash, 1 red onion, 100g feta, 30ml honey, fresh herbs or pumpkin seeds', instructions: '1. Heat oven to 200°C (180°C fan).\n2. Mix oil, honey, garlic, chilli, seasoning and optional vinegar/spices.\n3. Toss with squash and onion.\n4. Roast for 25–35 minutes, turning halfway.\n5. Add feta and roast for 5 more minutes.\n6. Finish with herbs or seeds and serve.' },
+            { name: 'Salmon, Lemon & Herb Spaghetti', category: 'Pasta', protein: 'Fish', time: '25 mins', defaultServings: 3, ingredients: '190g spaghetti, 2 skin-on salmon fillets, 80g spinach, 40g clotted cream, 30g Italian hard cheese, 15g roasted garlic paste, 1 lemon, 10g dill & chive', instructions: '1. Boil a kettle. Cook the spaghetti in boiled water for 7–9 minutes, reserving a cup of starchy pasta water, then drain.\n2. Heat vegetable oil in a large pan. Season the salmon and cook for 3–4 minutes on each side until starting to colour.\n3. Wilt the spinach in a colander with boiled water, rinse under cold water and squeeze dry.\n4. Dissolve the stock mix in 150ml boiled water.\n5. Add the roasted garlic paste and lemon juice to the salmon and cook for 3–4 minutes more on each side until cooked through.\n6. Peel off the skin, flake the salmon and roughly chop the dill & chives.\n7. Add the stock and clotted cream, then the drained spaghetti and spinach. Mix well and season.\n8. Top with dill, chives, grated cheese and black pepper.' },
+            { name: 'Shakshuka With Feta & Crunchy Pitta', category: 'Mediterranean', protein: 'Vegetarian', time: '50 mins', defaultServings: 3, ingredients: '4 wholemeal pittas, 1 red onion, 1 red pepper, 5g parsley, 30g feta, 2 garlic cloves, 200g chopped tomatoes, 15g pumpkin seeds, 80g spinach, 2 eggs', instructions: '1. Soften sliced onion and pepper in olive oil.\n2. Add garlic and spices; cook until fragrant.\n3. Add tomatoes and 100ml vegetable stock; simmer until thick.\n4. Add spinach and wilt.\n5. Toast pitta triangles for 8–10 minutes.\n6. Crack eggs over the vegetables; cover and cook for 4–5 minutes.\n7. Serve with pitta, parsley, pumpkin seeds and feta.' },
+            { name: 'Spicy Peanut Chicken Noodles', category: 'Asian', protein: 'Chicken', time: '20 mins', defaultServings: 3, ingredients: '250g diced chicken breast, 1 spring onion, 160g fine green beans, 2 medium egg noodle nests, 26g smooth peanut butter, 15g ginger & garlic paste, 1/2 tsp dried chilli flakes, 25g roasted peanuts', instructions: '1. Boil a kettle and heat vegetable oil in a large non-stick pan over a medium-high heat.\n2. Slice the spring onion and halve the green beans.\n3. Add the chicken and ginger & garlic paste and cook for 5–6 minutes until starting to brown.\n4. Cook the noodles in a pot of boiled water for 5–6 minutes with a slight bite. Drain, reserving a cup of the starchy noodle water.\n5. Mix the peanut butter, sriracha, chilli flakes, honey, rice vinegar and soy sauce with 2 tbsp water and 1 tbsp vegetable oil to make the sauce.\n6. Add the green beans to the chicken and cook for 3–4 minutes until the chicken is cooked through.\n7. Add the sauce and drained noodles and mix well, with a splash of noodle water if dry.\n8. Crush the peanuts and serve topped with the peanuts and spring onion.' },
+            { name: 'Squash & Sage Sauce With Spinach & Ricotta Ravioli', category: 'Pasta', protein: 'Vegetarian', time: '13 mins', defaultServings: 3, ingredients: '500g spinach & ricotta ravioli, 320g butternut squash cubes, 40g grated Italian hard cheese, 50g walnuts, 53g rocket, 4 garlic cloves, 7g sage', instructions: '1. Brown 60g butter for 3–5 mins, then remove from the heat.\n2. Microwave the covered, pierced squash for 3–4 mins until tender.\n3. Boil the ravioli for 3–4 mins until al dente, then drain.\n4. Dry-toast the walnuts for 2–3 mins until golden.\n5. Slice the garlic and strip the sage leaves.\n6. Return the brown butter to the heat; sauté garlic, sage, squash and salt for 2–3 mins. Add ravioli and toss.\n7. Serve with rocket, walnuts, Italian hard cheese and black pepper.' },
+            { name: 'Sweet potato & peanut curry', category: 'Asian', protein: 'Vegetarian', time: '60 mins', defaultServings: 4, ingredients: '1 onion, 2 garlic cloves, 1 thumb-sized piece ginger, 3 tbsp Thai red curry paste, 1 tbsp smooth peanut butter, 500g sweet potato, 400ml coconut milk, 200g spinach, 1 lime', instructions: '1. Soften onion in coconut oil for 5 minutes.\n2. Add garlic and ginger; cook for 1 minute.\n3. Add curry paste, peanut butter and sweet potato.\n4. Add coconut milk and water; simmer for 25–30 minutes.\n5. Stir in spinach and lime juice; season and serve.' },
+            { name: 'Sweet Soy & Sesame Glaze', category: 'Asian', protein: 'Vegetarian', time: '10 mins', defaultServings: 3, ingredients: '1 small garlic clove, 1/4 tsp fresh ginger, 1 spring onion', instructions: '1. Combine soy sauce, honey, rice wine vinegar, minced garlic, grated ginger and chili flakes in a small saucepan.\n2. Bring to a gentle simmer over medium heat. Cook for 2–3 minutes, stirring occasionally, until slightly thickened.\n3. Remove from heat. Stir in toasted sesame oil and extra honey if desired.\n4. Pour into a serving bowl or drizzle over cooked sticky rice and roast chicken. Garnish with sliced spring onion.' },
+            { name: 'Tandoori Basa With Mint Raita & Kachumber Salad', category: 'Asian', protein: 'Fish', time: '40 mins', defaultServings: 3, ingredients: '2 basa fillets, 1/2 cucumber, 1 tsp cumin seeds, 1 tbsp curry powder, 1/2 tsp dried chilli flakes, 20g mint sauce, 80g natural yoghurt, 1 shallot, 2 tomatoes, 130g white basmati rice', instructions: '1. Preheat the grill to high. Cook the basmati with the cumin seeds, a pinch of salt and 300ml cold water, covered, for 10–12 minutes on very low once boiling.\n2. Cut the basa in half lengthways, then into bite-sized pieces.\n3. Mix half the yoghurt with the curry powder, chilli flakes, salt and 1 tbsp olive oil. Coat the fish.\n4. Halve the cucumber lengthways and scrape out the seeds (keep them). Dice the cucumber, shallot and tomatoes.\n5. Mix the diced veg with 1 tbsp olive oil and a pinch of salt for the kachumber salad.\n6. Mix the cucumber seeds, remaining yoghurt and mint sauce with a pinch of salt for the mint raita.\n7. Grill the coated fish on a foil-lined tray for 9–10 minutes until cooked and starting to char.\n8. Serve the fish over the cumin rice with the salad and raita.' },
+            { name: 'Tandoori Paneer, Mint Raita And Kachumber Salad', category: 'Asian', protein: 'Vegetarian', time: '50 mins', defaultServings: 3, ingredients: '400g paneer, 5g black sesame seeds, 1/2 cucumber, 1 tbsp curry powder, 1/2 tsp dried chilli flakes, 20g mint sauce, 80g natural yoghurt, 1 shallot, 2 tomatoes, 130g white basmati rice', instructions: '1. Preheat the grill to high. Cook the basmati with the sesame seeds, a pinch of salt and 300ml cold water, covered, for 10–12 minutes on very low once boiling.\n2. Cut the paneer into bite-sized cubes.\n3. Mix half the yoghurt with the curry powder, chilli flakes, salt and 1 tbsp olive oil. Coat the paneer.\n4. Halve the cucumber lengthways, scrape out the seeds (keep them), then dice the cucumber, shallot and tomatoes.\n5. Mix the diced veg with 1 tbsp olive oil and a pinch of salt for the kachumber salad.\n6. Mix the cucumber seeds, remaining yoghurt and mint sauce with a pinch of salt for the mint raita.\n7. Grill the coated paneer on a foil-lined tray for 4–5 minutes until starting to char (in batches if cooking for 3 or more).\n8. Serve the tandoori paneer over the sesame rice with the salad and raita.' },
+            { name: 'Tuscan Fish & Black Olive Risotto', category: 'Mediterranean', protein: 'Fish', time: '45 mins', defaultServings: 3, ingredients: '1 red onion, 10g basil, 30g pitted black olives, 1 garlic clove, 15g capers, 2 × 100g basa fillets, 125g cherry tomatoes, 1 vegetable stock cube, 160g arborio rice', instructions: '1. Preheat the oven to 220°C / 200°C fan / Gas 7 and boil a kettle.\n2. Dice the red onion, chop the garlic and dissolve the stock cube in 800ml boiled water.\n3. Soften the onion in 2 tbsp olive oil with a pinch of salt for 5 minutes.\n4. Stir in the rice and half the garlic, then add the stock gradually, stirring, for 15–20 minutes until the rice is cooked.\n5. Meanwhile halve the cherry tomatoes and put them on a foil-lined tray with the pat-dried basa. Drizzle with olive oil and season, with a pinch of sugar on the tomatoes.\n6. Bake for 10–15 minutes until the fish is opaque and flakes easily.\n7. Chop the capers, olives and basil. Mix the capers and olives with the remaining garlic and 2 tbsp olive oil to make the tapenade.\n8. Stir a knob of butter, half the tapenade, the roasted tomatoes and most of the basil into the risotto.\n9. Serve the fish over the risotto with the remaining tapenade and basil.' }
         ];
 
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         let shortlist = [];
         let assignments = {};
+        let selectedCategory = '';
+        let selectedProtein = '';
+        let selectedTime = '';
+
+        // Get unique filter options
+        const categories = [...new Set(recipes.map(r => r.category))].sort();
+        const proteins = [...new Set(recipes.map(r => r.protein))].sort();
+
+        function getProteinIcon(protein) {
+            const icons = {
+                'Chicken': '🍗',
+                'Fish': '🐟',
+                'Meat': '🥩',
+                'Vegetarian': '🥗'
+            };
+            return icons[protein] || '🥗';
+        }
+
+        // Map detailed proteins from Notion to simplified app categories
+        function normalizeProtein(notionProtein) {
+            const proteinMap = {
+                'Chicken': 'Chicken',
+                'Fish': 'Fish',
+                'Beef': 'Meat',
+                'Pork': 'Meat',
+                'Lamb': 'Meat',
+                'Halloumi': 'Vegetarian',
+                'Paneer': 'Vegetarian',
+                'Tofu/Tempeh': 'Vegetarian',
+                'Eggs': 'Vegetarian',
+                'Beans/Lentils': 'Vegetarian',
+                'Vegetarian': 'Vegetarian',
+                'None': 'Vegetarian'
+            };
+            return proteinMap[notionProtein] || 'Vegetarian';
+        }
+
+        function getTimeMinutes(timeStr) {
+            return parseInt(timeStr);
+        }
+
+        function matchesTimeFilter(recipeTime) {
+            if (!selectedTime) return true;
+            const mins = getTimeMinutes(recipeTime);
+            if (selectedTime === 'quick') return mins < 20;
+            if (selectedTime === 'medium') return mins >= 20 && mins <= 30;
+            if (selectedTime === 'long') return mins > 30;
+            return true;
+        }
 
         // Initialize
-        function init() {
+        async function init() {
             loadFromStorage();
+            renderFilterDropdowns();
             renderRecipes();
             setupTabs();
+        }
+
+        function renderFilterDropdowns() {
+            const categorySelect = document.getElementById('categoryFilter');
+            categorySelect.innerHTML = '<option value="">All Categories</option>' +
+                categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            categorySelect.value = selectedCategory;
+            categorySelect.addEventListener('change', (e) => {
+                selectedCategory = e.target.value;
+                renderRecipes();
+            });
+
+            // Render protein icon buttons
+            const proteinContainer = document.getElementById('proteinFilters');
+            proteinContainer.innerHTML = proteins.map(prot => `
+                <button class="protein-btn${selectedProtein === prot ? ' active' : ''}"
+                    data-protein="${prot}"
+                    title="${prot}">
+                    ${getProteinIcon(prot)}
+                </button>
+            `).join('');
+
+            document.querySelectorAll('[data-protein]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const prot = e.currentTarget.dataset.protein;
+                    selectedProtein = selectedProtein === prot ? '' : prot;
+                    renderFilterDropdowns();
+                    renderRecipes();
+                });
+            });
+
+            const timeSelect = document.getElementById('timeFilter');
+            timeSelect.value = selectedTime;
+            timeSelect.addEventListener('change', (e) => {
+                selectedTime = e.target.value;
+                renderRecipes();
+            });
         }
 
         function setupTabs() {
@@ -343,18 +729,59 @@
 
         function renderRecipes() {
             const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-            const filtered = recipes.filter(r => r.name.toLowerCase().includes(searchTerm));
-            const container = document.getElementById('recipesList');
+            let filtered = recipes.filter(r => {
+                const matchesSearch = r.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = !selectedCategory || r.category === selectedCategory;
+                const matchesProtein = !selectedProtein || r.protein === selectedProtein;
+                const matchesTime = matchesTimeFilter(r.time);
+                return matchesSearch && matchesCategory && matchesProtein && matchesTime;
+            });
 
-            container.innerHTML = filtered.map((recipe, idx) => `
-                <div class="recipe-item">
-                    <input type="checkbox" class="recipe-checkbox" data-index="${idx}" ${shortlist.includes(recipe.name) ? 'checked' : ''}>
-                    <div class="recipe-info">
-                        <h4>${recipe.name}</h4>
-                        <p>${recipe.category} • ${recipe.protein}</p>
+            // Sort by protein (in order), then alphabetically by name
+            const proteinOrder = ['Chicken', 'Fish', 'Meat', 'Vegetarian'];
+            filtered.sort((a, b) => {
+                const proteinAIndex = proteinOrder.indexOf(a.protein);
+                const proteinBIndex = proteinOrder.indexOf(b.protein);
+                if (proteinAIndex !== proteinBIndex) {
+                    return proteinAIndex - proteinBIndex;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            const container = document.getElementById('recipesList');
+            let html = '';
+            let currentProtein = '';
+
+            filtered.forEach((recipe, idx) => {
+                // Add protein header when protein changes
+                if (recipe.protein !== currentProtein) {
+                    if (currentProtein !== '') html += '</div>';
+                    currentProtein = recipe.protein;
+                    const icon = getProteinIcon(recipe.protein);
+                    html += `<div style="margin-top: 20px;"><h3 style="font-size: 13px; color: #8a9aaa; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; font-weight: 600;">${icon} ${recipe.protein}</h3>`;
+                }
+
+                html += `
+                    <div class="recipe-item" onclick="openRecipeModal('${recipe.name}')">
+                        <div class="recipe-item-header">
+                            <div class="recipe-item-title">
+                                <h4>${recipe.name}</h4>
+                            </div>
+                        </div>
+                        <div class="recipe-badges">
+                            <span class="badge">${recipe.category}</span>
+                            <span class="badge">⏱ ${recipe.time}</span>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 4px;" onclick="event.stopPropagation();">
+                            <input type="checkbox" class="recipe-checkbox" data-name="${recipe.name}" ${shortlist.includes(recipe.name) ? 'checked' : ''}>
+                            <span style="font-size: 13px; color: #7a9b7f; font-weight: 500;">Add to shortlist</span>
+                        </label>
                     </div>
-                </div>
-            `).join('');
+                `;
+            });
+
+            if (currentProtein !== '') html += '</div>';
+            container.innerHTML = html;
 
             document.querySelectorAll('.recipe-checkbox').forEach(cb => {
                 cb.addEventListener('change', updateShortlist);
@@ -363,11 +790,118 @@
             document.getElementById('searchInput')?.addEventListener('input', renderRecipes);
         }
 
+        function parseIngredient(ingredient) {
+            // Parse "quantity unit item" format
+            // Examples: "400g chicken", "3 eggs", "100ml yoghurt"
+            const match = ingredient.trim().match(/^([\d.]+)\s*(\w+)?\s+(.+)$/);
+            if (!match) {
+                return { quantity: null, unit: '', item: ingredient.trim() };
+            }
+            return {
+                quantity: parseFloat(match[1]),
+                unit: match[2] || '',
+                item: match[3]
+            };
+        }
+
+        function formatQuantity(quantity) {
+            if (quantity === null) return '';
+            // Round to 1 decimal place for cleaner display
+            const rounded = Math.round(quantity * 10) / 10;
+            return rounded % 1 === 0 ? rounded.toString() : rounded.toString();
+        }
+
+        function scaleIngredient(ingredient, factor) {
+            const parsed = parseIngredient(ingredient);
+            if (parsed.quantity === null) {
+                return ingredient; // Can't scale items without quantities
+            }
+            const scaledQuantity = parsed.quantity * factor;
+            const formattedQty = formatQuantity(scaledQuantity);
+            return `${formattedQty}${parsed.unit ? ' ' + parsed.unit : ''} ${parsed.item}`;
+        }
+
+        function updateModalIngredients() {
+            const recipeName = document.getElementById('modalTitle').textContent;
+            const recipe = recipes.find(r => r.name === recipeName);
+            if (!recipe) return;
+
+            const servings = parseInt(document.getElementById('modalServings').value);
+            const factor = servings / recipe.defaultServings;
+
+            const ingredientsList = document.getElementById('modalIngredients');
+            const ingredients = recipe.ingredients.split(',');
+
+            ingredientsList.innerHTML = ingredients.map(ing => {
+                const scaled = scaleIngredient(ing, factor);
+                return `<li style="padding: 6px 0; font-size: 14px; color: #1a2633; line-height: 1.5;">• ${scaled}</li>`;
+            }).join('');
+        }
+
+        function openRecipeModal(recipeName) {
+            const recipe = recipes.find(r => r.name === recipeName);
+            if (!recipe) return;
+
+            document.getElementById('modalTitle').textContent = recipe.name;
+            document.getElementById('modalMeta').innerHTML = `
+                <span class="modal-badge">${recipe.protein}</span>
+                <span class="modal-badge">${recipe.category}</span>
+                <span class="modal-badge">⏱ ${recipe.time}</span>
+            `;
+
+            // Set default servings
+            document.getElementById('modalServings').value = recipe.defaultServings;
+
+            // Display ingredients scaled to default servings
+            updateModalIngredients();
+
+            // Show instructions
+            if (recipe.instructions) {
+                document.getElementById('modalInstructions').innerHTML = recipe.instructions.split('\n').map(line =>
+                    `<li style="padding: 6px 0; font-size: 14px; color: #1a2633; line-height: 1.6;">${line}</li>`
+                ).join('');
+                document.getElementById('instructionsSection').style.display = 'block';
+            } else {
+                document.getElementById('instructionsSection').style.display = 'none';
+            }
+
+            // Hide pantry section for now
+            document.getElementById('pantrySection').style.display = 'none';
+
+            document.getElementById('modalCheckbox').checked = shortlist.includes(recipe.name);
+
+            document.getElementById('recipeModal').classList.add('active');
+        }
+
+        function closeRecipeModal() {
+            document.getElementById('recipeModal').classList.remove('active');
+        }
+
+        function updateShortlistFromModal() {
+            const recipeName = document.getElementById('modalTitle').textContent;
+            const isChecked = document.getElementById('modalCheckbox').checked;
+
+            if (isChecked && !shortlist.includes(recipeName)) {
+                shortlist.push(recipeName);
+            } else if (!isChecked && shortlist.includes(recipeName)) {
+                shortlist = shortlist.filter(m => m !== recipeName);
+            }
+            saveToStorage();
+            renderRecipes();
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('recipeModal');
+            if (event.target === modal) {
+                closeRecipeModal();
+            }
+        });
+
         function updateShortlist() {
             shortlist = [];
             document.querySelectorAll('.recipe-checkbox:checked').forEach(cb => {
-                const idx = cb.dataset.index;
-                shortlist.push(recipes[idx].name);
+                shortlist.push(cb.dataset.name);
             });
             saveToStorage();
         }
