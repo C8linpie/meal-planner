@@ -38,6 +38,8 @@ function toItem(page) {
     recipe: plain(p['Recipe']),
     ticked: !!p['Ticked']?.checkbox,
     addedBy: p['Added by']?.select?.name || '',
+    store: p['Store']?.select?.name || '',
+    section: p['Section']?.select?.name || '',
   };
 }
 
@@ -57,7 +59,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const { item, quantity = '', recipe = '', addedBy = '' } = req.body || {};
+      const { item, quantity = '', recipe = '', addedBy = '', store = '', section = '' } = req.body || {};
       if (!item) return res.status(400).json({ error: 'item is required' });
       const page = await notion('/pages', token, 'POST', {
         parent: { database_id: SHOPPING_DB_ID },
@@ -67,6 +69,8 @@ export default async function handler(req, res) {
           'Recipe': richText(recipe),
           'Ticked': { checkbox: false },
           ...(addedBy ? { 'Added by': { select: { name: addedBy } } } : {}),
+          ...(store ? { 'Store': { select: { name: store } } } : {}),
+          ...(section ? { 'Section': { select: { name: section } } } : {}),
         },
       });
       return res.status(200).json(toItem(page));
