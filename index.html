@@ -509,7 +509,7 @@
     <div class="tabs">
         <button class="tab-btn active" data-tab="recipes">Recipes</button>
         <button class="tab-btn" data-tab="shortlist">Shortlist</button>
-        <button class="tab-btn" data-tab="week">This Week</button>
+        <button class="tab-btn" data-tab="week">Shopping List</button>
     </div>
 
     <div class="content">
@@ -554,7 +554,6 @@
 
         <!-- This Week Tab -->
         <div id="week" class="tab-content">
-            <div class="week-grid" id="weekGrid"></div>
             <div class="shopping-section" id="shoppingSection">
                 <div class="shop-header">
                     <h3>Shopping List</h3>
@@ -671,7 +670,7 @@
                 '<button type="button" onclick="location.reload()" style="margin-left:8px;padding:6px 12px;border-radius:6px;border:1px solid #7a9b7f;background:white;color:#1a2633;cursor:pointer;">Try again</button></div>';
         }
 
-                function getProteinIcon(protein) {
+        function getProteinIcon(protein) {
             const icons = {
                 'Chicken': '🍗',
                 'Fish': '🐟',
@@ -995,15 +994,26 @@
                 return;
             }
 
-            container.innerHTML = shortlist.map(meal => `
+            container.innerHTML = shortlist.map(meal => {
+                const info = assignments[meal];
+                const day = info ? info.day : '';
+                const cook = info ? (info.cook || 'Russel') : 'Russel';
+                const selectStyle = 'flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #e0dcd7; font-size: 14px; background: white; color: #1a2633;';
+                return `
                 <div class="shortlist-item">
                     <h4>${meal}</h4>
-                    <select data-meal="${meal}" onchange="updateAssignment(this)">
-                        <option value="">Not assigned</option>
-                        ${days.map(day => `<option value="${day}" ${assignments[meal] && assignments[meal].day === day ? 'selected' : ''}>${day}</option>`).join('')}
-                    </select>
-                </div>
-            `).join('');
+                    <div style="display: flex; gap: 8px; margin-top: 6px;">
+                        <select data-meal="${meal}" onchange="updateAssignment(this)" style="${selectStyle}">
+                            <option value="">Not assigned</option>
+                            ${days.map(d => `<option value="${d}" ${day === d ? 'selected' : ''}>${d}</option>`).join('')}
+                        </select>
+                        <select data-meal="${meal}" onchange="updateCook(this)" style="${selectStyle}" ${day ? '' : 'disabled'}>
+                            <option value="Russel" ${cook === 'Russel' ? 'selected' : ''}>Russel cooks</option>
+                            <option value="Caitlin" ${cook === 'Caitlin' ? 'selected' : ''}>Caitlin cooks</option>
+                        </select>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function updateAssignment(select) {
@@ -1016,7 +1026,7 @@
             }
             saveToStorage();
             savePlanMeal(meal);
-            renderWeek();
+            renderShortlist();
         }
 
         function updateCook(select) {
@@ -1034,32 +1044,8 @@
             }
         }
 
+        // The Shopping List tab
         function renderWeek() {
-            const grid = document.getElementById('weekGrid');
-
-            grid.innerHTML = days.map(day => {
-                const meals = Object.entries(assignments).filter(([_, info]) => info.day === day);
-
-                return `
-                    <div class="day-card">
-                        <h3>${day}</h3>
-                        <div class="day-content ${meals.length ? '' : 'unassigned'}">
-                            ${meals.length ? meals.map(([meal, info]) => {
-                                const cook = info.cook || 'Russel';
-                                return `
-                                <div style="margin-bottom: 10px;">
-                                    <div class="meal-name">${meal}</div>
-                                    <select data-meal="${meal}" onchange="updateCook(this)" style="width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid #e0dcd7; font-size: 12px; margin-top: 6px; background: white; color: #1a2633;">
-                                        <option value="Russel" ${cook === 'Russel' ? 'selected' : ''}>Russel</option>
-                                        <option value="Caitlin" ${cook === 'Caitlin' ? 'selected' : ''}>Caitlin</option>
-                                    </select>
-                                </div>`;
-                            }).join('') : 'Not planned'}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
             renderShoppingList();
         }
 
