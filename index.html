@@ -904,6 +904,7 @@
                 }
             } else {
                 shortlist = shortlist.filter(m => m !== recipeName);
+                delete assignments[recipeName];
             }
             saveToStorage();
         }
@@ -921,7 +922,7 @@
                     <h4>${meal}</h4>
                     <select data-meal="${meal}" onchange="updateAssignment(this)">
                         <option value="">Not assigned</option>
-                        ${days.map(day => `<option value="${day}" ${assignments[meal] === day ? 'selected' : ''}>${day}</option>`).join('')}
+                        ${days.map(day => `<option value="${day}" ${assignments[meal] && assignments[meal].day === day ? 'selected' : ''}>${day}</option>`).join('')}
                     </select>
                 </div>
             `).join('');
@@ -957,25 +958,23 @@
             const grid = document.getElementById('weekGrid');
 
             grid.innerHTML = days.map(day => {
-                const assigned = Object.entries(assignments).find(([_, info]) => {
-                    if (typeof info === 'string') return info === day; // Legacy format
-                    return info.day === day;
-                });
-                const meal = assigned ? assigned[0] : null;
-                const mealInfo = assigned ? assigned[1] : null;
-                const cook = (mealInfo && mealInfo.cook) ? mealInfo.cook : 'Russel';
+                const meals = Object.entries(assignments).filter(([_, info]) => info.day === day);
 
                 return `
                     <div class="day-card">
                         <h3>${day}</h3>
-                        <div class="day-content ${meal ? '' : 'unassigned'}">
-                            ${meal ? `
-                                <div class="meal-name">${meal}</div>
-                                <select data-meal="${meal}" onchange="updateCook(this)" style="width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid #e0dcd7; font-size: 12px; margin-top: 6px; background: white; color: #1a2633;">
-                                    <option value="Russel" ${cook === 'Russel' ? 'selected' : ''}>Russel</option>
-                                    <option value="Caitlin" ${cook === 'Caitlin' ? 'selected' : ''}>Caitlin</option>
-                                </select>
-                            ` : 'Not planned'}
+                        <div class="day-content ${meals.length ? '' : 'unassigned'}">
+                            ${meals.length ? meals.map(([meal, info]) => {
+                                const cook = info.cook || 'Russel';
+                                return `
+                                <div style="margin-bottom: 10px;">
+                                    <div class="meal-name">${meal}</div>
+                                    <select data-meal="${meal}" onchange="updateCook(this)" style="width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid #e0dcd7; font-size: 12px; margin-top: 6px; background: white; color: #1a2633;">
+                                        <option value="Russel" ${cook === 'Russel' ? 'selected' : ''}>Russel</option>
+                                        <option value="Caitlin" ${cook === 'Caitlin' ? 'selected' : ''}>Caitlin</option>
+                                    </select>
+                                </div>`;
+                            }).join('') : 'Not planned'}
                         </div>
                     </div>
                 `;
@@ -1063,7 +1062,19 @@
 
         function loadFromStorage() {
             shortlist = JSON.parse(localStorage.getItem('meal-shortlist') || '[]');
-            assignments = JSON.parse(localStorage.getItem('meal-assignments') || '{}');
+            const saved = JSON.parse(localStorage.getItem('meal-assignments') || '{}');
+            assignments = {};
+            // Upgrade older saved formats and drop meals that are no longer ticked
+            Object.keys(saved).forEach(meal => {
+                if (!shortlist.includes(meal)) return;
+                const info = saved[meal];
+                if (typeof info === 'string') {
+                    assignments[meal] = { day: info, cook: 'Russel' };
+                } else if (info && info.day) {
+                    assignments[meal] = { day: info.day, cook: info.cook || 'Russel' };
+                }
+            });
+            saveToStorage();
         }
 
         init();
