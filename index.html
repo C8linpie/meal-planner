@@ -473,7 +473,32 @@
             font-weight: 600;
             margin-right: 6px;
         }
+        /* Shared shopping list */
+        .shop-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .shop-header h3 { margin: 0; }
+        .shop-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .shop-actions button, .shop-add button { padding: 7px 12px; border-radius: 6px; border: 1px solid #7a9b7f; background: white; color: #1a2633; font-size: 13px; cursor: pointer; }
+        .shop-actions button:hover, .shop-add button:hover { background: #f5f2ed; }
+        .shop-group { margin-bottom: 16px; }
+        .shop-group h4 { font-size: 13px; font-weight: 600; color: #7a9b7f; margin-bottom: 6px; }
+        .shop-list { list-style: none; padding: 0; }
+        .shop-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0ece7; font-size: 15px; }
+        .shop-list input[type="checkbox"] { width: 22px; height: 22px; accent-color: #7a9b7f; flex-shrink: 0; }
+        .shop-list li span { flex: 1; }
+        .shop-list li.ticked span { text-decoration: line-through; color: #8a9aaa; }
+        .shop-del { background: none; border: none; color: #c0786a; font-size: 22px; cursor: pointer; padding: 0 4px; }
+        .shop-add { display: flex; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e0dcd7; }
+        .shop-add input { flex: 1; padding: 10px 12px; border-radius: 6px; border: 1px solid #e0dcd7; font-size: 15px; min-width: 0; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #shoppingSection, #shoppingSection * { visibility: visible; }
+            #shoppingSection { position: absolute; left: 0; top: 0; width: 100%; border: none; background: white; }
+            .shop-actions, .shop-add, .shop-del { display: none !important; }
+            .shop-list li { break-inside: avoid; }
+        }
     </style>
+
 </head>
 <body>
     <div class="header">
@@ -530,9 +555,20 @@
         <!-- This Week Tab -->
         <div id="week" class="tab-content">
             <div class="week-grid" id="weekGrid"></div>
-            <div class="shopping-section">
-                <h3>Shopping List</h3>
-                <ul class="shopping-list" id="shoppingList"></ul>
+            <div class="shopping-section" id="shoppingSection">
+                <div class="shop-header">
+                    <h3>Shopping List</h3>
+                    <div class="shop-actions">
+                        <button type="button" onclick="refreshFromMeals()">Refresh from meals</button>
+                        <button type="button" onclick="window.print()">Print</button>
+                        <button type="button" onclick="shareShoppingList()">Share</button>
+                    </div>
+                </div>
+                <div id="shoppingList"></div>
+                <div class="shop-add">
+                    <input type="text" id="customItemInput" placeholder="Add milk, bread, bin bags…" onkeydown="if(event.key==='Enter'){addCustomItem();}">
+                    <button type="button" onclick="addCustomItem()">Add</button>
+                </div>
             </div>
         </div>
     </div>
@@ -983,76 +1019,181 @@
             renderShoppingList();
         }
 
-        function renderShoppingList() {
-            const assignedMeals = Object.keys(assignments).filter(m => assignments[m].day);
-            const customItems = JSON.parse(localStorage.getItem('custom-shopping-items') || '[]');
+        // ---- Shared shopping list (stored in Notion via /api/shopping) ----
+        let shoppingRows = [];
 
-            let html = '';
-
-            // Group ingredients by recipe
-            assignedMeals.forEach(mealName => {
-                const recipe = recipes.find(r => r.name === mealName);
-                if (recipe) {
-                    html += `<div style="margin-bottom: 16px;">
-                        <h4 style="font-size: 13px; font-weight: 600; color: #7a9b7f; margin-bottom: 8px;">📋 ${mealName}</h4>
-                        <ul style="list-style: none; padding-left: 0;">`;
-
-                    recipe.ingredients.split(',').forEach(ing => {
-                        const trimmed = ing.trim();
-                        html += `<li style="display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px;">
-                            <input type="checkbox" class="shopping-item"> <label>${trimmed}</label>
-                        </li>`;
-                    });
-                    html += `</ul></div>`;
-                }
-            });
-
-            // Custom items section
-            if (customItems.length > 0) {
-                html += `<div style="margin-bottom: 16px; border-top: 1px solid #e0dcd7; padding-top: 12px;">
-                    <h4 style="font-size: 13px; font-weight: 600; color: #7a9b7f; margin-bottom: 8px;">✏️ Custom Items</h4>
-                    <ul style="list-style: none; padding-left: 0;">`;
-
-                customItems.forEach((item, idx) => {
-                    html += `<li style="display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px;">
-                        <input type="checkbox" class="shopping-item">
-                        <label>${item}</label>
-                        <button onclick="removeCustomItem(${idx})" style="margin-left: auto; background: none; border: none; color: #c0786a; cursor: pointer; font-size: 18px;">×</button>
-                    </li>`;
-                });
-                html += `</ul></div>`;
-            }
-
-            // Add custom item input
-            html += `<div style="margin-top: 16px; border-top: 1px solid #e0dcd7; padding-top: 12px;">
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="customItemInput" placeholder="Add milk, bread, etc." style="flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid #e0dcd7; font-size: 13px;">
-                    <button onclick="addCustomItem()" style="padding: 8px 14px; background: #7a9b7f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">Add</button>
-                </div>
-            </div>`;
-
-            document.getElementById('shoppingList').innerHTML = `<div>${html}</div>`;
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        function addCustomItem() {
+        function renderShoppingList() {
+            loadShoppingRows();
+        }
+
+        async function loadShoppingRows() {
+            const box = document.getElementById('shoppingList');
+            try {
+                const res = await fetch('/api/shopping');
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Could not load the list');
+                shoppingRows = data;
+                drawShoppingList();
+            } catch (e) {
+                box.innerHTML = `<p class="empty-state">Couldn't load the shared list. ${escapeHtml(e.message)}</p>`;
+            }
+        }
+
+        function drawShoppingList() {
+            const box = document.getElementById('shoppingList');
+            if (!shoppingRows.length) {
+                box.innerHTML = '<p class="empty-state">Nothing on the list yet. Add items below, or refresh from this week\'s meals.</p>';
+                return;
+            }
+            const groups = {};
+            shoppingRows.forEach(r => {
+                const key = r.recipe || 'Custom items';
+                (groups[key] = groups[key] || []).push(r);
+            });
+            const names = Object.keys(groups).sort((a, b) => {
+                if (a === 'Custom items') return 1;
+                if (b === 'Custom items') return -1;
+                return a.localeCompare(b);
+            });
+            box.innerHTML = names.map(name => `
+                <div class="shop-group">
+                    <h4>${escapeHtml(name)}</h4>
+                    <ul class="shop-list">
+                        ${groups[name].map(r => `
+                            <li class="${r.ticked ? 'ticked' : ''}">
+                                <input type="checkbox" ${r.ticked ? 'checked' : ''} onchange="toggleShopItem('${r.id}', this.checked)">
+                                <span>${escapeHtml(r.item)}</span>
+                                <button type="button" class="shop-del" onclick="removeShopItem('${r.id}')" aria-label="Remove">×</button>
+                            </li>`).join('')}
+                    </ul>
+                </div>`).join('');
+        }
+
+        async function toggleShopItem(id, ticked) {
+            const row = shoppingRows.find(r => r.id === id);
+            if (row) row.ticked = ticked;
+            drawShoppingList();
+            try {
+                const res = await fetch('/api/shopping', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, ticked }),
+                });
+                if (!res.ok) throw new Error((await res.json()).error);
+            } catch (e) {
+                alert('Could not save that tick: ' + e.message);
+                loadShoppingRows();
+            }
+        }
+
+        async function removeShopItem(id) {
+            shoppingRows = shoppingRows.filter(r => r.id !== id);
+            drawShoppingList();
+            try {
+                const res = await fetch('/api/shopping', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id }),
+                });
+                if (!res.ok) throw new Error((await res.json()).error);
+            } catch (e) {
+                alert('Could not remove that item: ' + e.message);
+                loadShoppingRows();
+            }
+        }
+
+        async function addCustomItem() {
             const input = document.getElementById('customItemInput');
             const item = input.value.trim();
             if (!item) return;
-
-            let customItems = JSON.parse(localStorage.getItem('custom-shopping-items') || '[]');
-            if (!customItems.includes(item)) {
-                customItems.push(item);
-                localStorage.setItem('custom-shopping-items', JSON.stringify(customItems));
-                input.value = '';
-                renderWeek();
+            input.value = '';
+            try {
+                const res = await fetch('/api/shopping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item }),
+                });
+                if (!res.ok) throw new Error((await res.json()).error);
+                loadShoppingRows();
+            } catch (e) {
+                alert('Could not add that item: ' + e.message);
+                input.value = item;
             }
         }
 
-        function removeCustomItem(index) {
-            let customItems = JSON.parse(localStorage.getItem('custom-shopping-items') || '[]');
-            customItems.splice(index, 1);
-            localStorage.setItem('custom-shopping-items', JSON.stringify(customItems));
-            renderWeek();
+        // Adds ingredients for this week's meals that aren't on the list yet,
+        // and removes ingredients from meals that are no longer assigned.
+        async function refreshFromMeals() {
+            const assignedMeals = Object.keys(assignments).filter(m => {
+                const info = assignments[m];
+                return typeof info === 'string' || (info && info.day);
+            });
+
+            const wanted = [];
+            assignedMeals.forEach(mealName => {
+                const recipe = recipes.find(r => r.name === mealName);
+                if (!recipe) return;
+                recipe.ingredients.split(',').map(s => s.trim()).filter(Boolean)
+                    .forEach(item => wanted.push({ recipe: mealName, item }));
+            });
+
+            const exists = new Set(shoppingRows.map(r => r.recipe + '|' + r.item));
+            const toAdd = wanted.filter(w => !exists.has(w.recipe + '|' + w.item));
+            const keep = new Set(wanted.map(w => w.recipe + '|' + w.item));
+            const toRemove = shoppingRows.filter(r => r.recipe && !keep.has(r.recipe + '|' + r.item));
+
+            const box = document.getElementById('shoppingList');
+            box.insertAdjacentHTML('afterbegin', '<p class="empty-state" id="shopSyncing">Updating list…</p>');
+
+            try {
+                // Notion allows about 3 requests a second, so send in small batches.
+                for (let i = 0; i < toAdd.length; i += 3) {
+                    await Promise.all(toAdd.slice(i, i + 3).map(w => fetch('/api/shopping', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ item: w.item, recipe: w.recipe }),
+                    })));
+                }
+                for (let i = 0; i < toRemove.length; i += 3) {
+                    await Promise.all(toRemove.slice(i, i + 3).map(r => fetch('/api/shopping', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: r.id }),
+                    })));
+                }
+            } catch (e) {
+                alert('Some items could not be updated: ' + e.message);
+            }
+            await loadShoppingRows();
+        }
+
+        async function shareShoppingList() {
+            const lines = [];
+            const groups = {};
+            shoppingRows.filter(r => !r.ticked).forEach(r => {
+                const key = r.recipe || 'Custom items';
+                (groups[key] = groups[key] || []).push(r.item);
+            });
+            Object.keys(groups).forEach(name => {
+                lines.push(name);
+                groups[name].forEach(item => lines.push('  - ' + item));
+                lines.push('');
+            });
+            const text = lines.join('\n').trim() || 'Shopping list is empty';
+            if (navigator.share) {
+                try { await navigator.share({ title: 'Shopping list', text }); } catch (e) { /* cancelled */ }
+            } else {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    alert('Shopping list copied to clipboard');
+                } catch (e) {
+                    alert(text);
+                }
+            }
         }
 
         function saveToStorage() {
