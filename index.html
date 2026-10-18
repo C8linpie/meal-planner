@@ -487,6 +487,8 @@
         .shop-list li span { flex: 1; }
         .shop-list li.ticked span { text-decoration: line-through; color: #8a9aaa; }
         .shop-del { background: none; border: none; color: #c0786a; font-size: 22px; cursor: pointer; padding: 0 4px; }
+        .shop-block-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #7a9b7f; margin: 12px 0 4px; }
+        .shop-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #f5f2ed; color: #1a2633; border: 1px solid #e0dcd7; white-space: nowrap; }
         .shop-add { display: flex; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e0dcd7; }
         .shop-add input { flex: 1; padding: 10px 12px; border-radius: 6px; border: 1px solid #e0dcd7; font-size: 15px; min-width: 0; }
 
@@ -619,8 +621,8 @@
     </div>
 
     <script>
-        // Recipes are loaded live from Notion via /api/recipes
-        let recipes = [];
+        // Recipe data from Notion with detailed ingredients, instructions and serving sizes
+        let recipes = []; // Filled from Notion when the page loads
 
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -650,9 +652,10 @@
             return recipe;
         }
 
+        // Loads recipes from Notion. If that fails, the built-in list stays in use.
         async function loadRecipesFromNotion() {
             try {
-                const res = await fetch('/api/recipes', { cache: 'no-store' });
+                const res = await fetch('/api/recipes');
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Could not load recipes');
                 if (!Array.isArray(data) || data.length === 0) throw new Error('No recipes returned');
@@ -662,12 +665,6 @@
                 console.warn('Could not load recipes from Notion:', e.message);
                 return false;
             }
-        }
-
-        function showRecipeLoadError() {
-            document.getElementById('recipesList').innerHTML =
-                '<div class="empty-state">Could not load your recipes from Notion. ' +
-                '<button type="button" onclick="location.reload()" style="margin-left:8px;padding:6px 12px;border-radius:6px;border:1px solid #7a9b7f;background:white;color:#1a2633;cursor:pointer;">Try again</button></div>';
         }
 
         function getProteinIcon(protein) {
@@ -715,15 +712,19 @@
         // Initialize
         async function init() {
             loadFromStorage();
-            document.getElementById('recipesList').innerHTML = '<div class="empty-state">Loading recipes from Notion...</div>';
-            const ok = await loadRecipesFromNotion();
-            if (!ok) { showRecipeLoadError(); return; }
+            recipes = recipes.map(normaliseRecipe);
+            const fromNotion = await loadRecipesFromNotion();
+            if (!fromNotion) {
+                document.getElementById('recipes').insertAdjacentHTML('afterbegin',
+                    '<div class="empty-state">Couldn\'t load recipes from Notion. Check the connection in Notion, then refresh the page.</div>');
+            }
             rebuildFilterOptions();
             renderFilterDropdowns();
             renderRecipes();
             setupTabs();
             document.getElementById('whoSelect').value = getWho();
             await loadPlan();
+            await loadWhereList();
             loadShoppingRows();
             // Pick up changes made on the other phone
             setInterval(() => { loadPlan(); loadShoppingRows(); }, 30000);
@@ -1073,6 +1074,44 @@
             }
         }
 
+        // Shop sections, in the order you walk round Lidl
+        const SECTION_ORDER = ['Bakery', 'Fruit & veg', 'Meat & fish', 'Dairy & eggs', 'Dry food', 'Frozen', 'Household', 'Other'];
+        let whereList = [];
+
+        async function loadWhereList() {
+            try {
+                const res = await fetch('/api/where');
+                if (res.ok) whereList = await res.json();
+            } catch (e) { /* keep the last list we had */ }
+        }
+
+        // Finds the Where to Buy row whose name appears in the ingredient, e.g. "spinach" in "80g baby spinach"
+        function findWhere(text) {
+            const lower = String(text).toLowerCase();
+            let best = null;
+            whereList.forEach(w => {
+                const key = w.item.toLowerCase();
+                if (key && lower.includes(key) && (!best || key.length > best.item.toLowerCase().length)) best = w;
+            });
+            return best;
+        }
+
+        // Store and section for a new item. Anything not in Where to Buy defaults to Aldi/Lidl, section Other
+        function shopFields(item, recipe = '') {
+            const w = findWhere(item);
+            return {
+                item,
+                recipe,
+                store: w && w.store ? w.store : 'Aldi/Lidl',
+                section: w && w.section ? w.section : 'Other',
+            };
+        }
+
+        function sectionRank(section) {
+            const i = SECTION_ORDER.indexOf(section || 'Other');
+            return i === -1 ? SECTION_ORDER.length : i;
+        }
+
         function drawShoppingList() {
             const box = document.getElementById('shoppingList');
             if (!shoppingRows.length) {
@@ -1081,26 +1120,38 @@
             }
             const groups = {};
             shoppingRows.forEach(r => {
-                const key = r.recipe || 'Custom items';
+                const key = r.recipe || 'Added items';
                 (groups[key] = groups[key] || []).push(r);
             });
             const names = Object.keys(groups).sort((a, b) => {
-                if (a === 'Custom items') return 1;
-                if (b === 'Custom items') return -1;
+                if (a === 'Added items') return 1;
+                if (b === 'Added items') return -1;
                 return a.localeCompare(b);
             });
-            box.innerHTML = names.map(name => `
+
+            const itemList = rows => `
+                <ul class="shop-list">
+                    ${rows.map(r => `
+                        <li class="${r.ticked ? 'ticked' : ''}">
+                            <input type="checkbox" ${r.ticked ? 'checked' : ''} onchange="toggleShopItem('${r.id}', this.checked)">
+                            <span>${escapeHtml(r.item)}</span>
+                            <span class="shop-tag">${escapeHtml(r.store || 'Aldi/Lidl')}</span>
+                            <button type="button" class="shop-del" onclick="removeShopItem('${r.id}')" aria-label="Remove">×</button>
+                        </li>`).join('')}
+                </ul>`;
+
+            box.innerHTML = names.map(name => {
+                const rows = groups[name].slice().sort((a, b) =>
+                    sectionRank(a.section) - sectionRank(b.section) || a.item.localeCompare(b.item));
+                const main = rows.filter(r => r.store !== 'Big shop');
+                const big = rows.filter(r => r.store === 'Big shop');
+                return `
                 <div class="shop-group">
                     <h4>${escapeHtml(name)}</h4>
-                    <ul class="shop-list">
-                        ${groups[name].map(r => `
-                            <li class="${r.ticked ? 'ticked' : ''}">
-                                <input type="checkbox" ${r.ticked ? 'checked' : ''} onchange="toggleShopItem('${r.id}', this.checked)">
-                                <span>${escapeHtml(r.item)}</span>
-                                <button type="button" class="shop-del" onclick="removeShopItem('${r.id}')" aria-label="Remove">×</button>
-                            </li>`).join('')}
-                    </ul>
-                </div>`).join('');
+                    ${main.length ? `<div class="shop-block-label">Aldi / Lidl</div>${itemList(main)}` : ''}
+                    ${big.length ? `<div class="shop-block-label">Big shop</div>${itemList(big)}` : ''}
+                </div>`;
+            }).join('');
         }
 
         async function toggleShopItem(id, ticked) {
@@ -1145,7 +1196,7 @@
                 const res = await fetch('/api/shopping', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ item, addedBy: getWho() }),
+                    body: JSON.stringify({ ...shopFields(item), addedBy: getWho() }),
                 });
                 if (!res.ok) throw new Error((await res.json()).error);
                 loadShoppingRows();
@@ -1171,6 +1222,7 @@
                     .forEach(item => wanted.push({ recipe: mealName, item }));
             });
 
+            await loadWhereList();
             const exists = new Set(shoppingRows.map(r => r.recipe + '|' + r.item));
             const toAdd = wanted.filter(w => !exists.has(w.recipe + '|' + w.item));
             const keep = new Set(wanted.map(w => w.recipe + '|' + w.item));
@@ -1185,7 +1237,7 @@
                     await Promise.all(toAdd.slice(i, i + 3).map(w => fetch('/api/shopping', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ item: w.item, recipe: w.recipe }),
+                        body: JSON.stringify(shopFields(w.item, w.recipe)),
                     })));
                 }
                 for (let i = 0; i < toRemove.length; i += 3) {
