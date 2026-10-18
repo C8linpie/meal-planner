@@ -566,6 +566,11 @@
                 </div>
                 <div id="shoppingList"></div>
                 <div class="shop-add">
+                    <select id="whoSelect" onchange="setWho(this.value)" style="padding: 10px 8px; border-radius: 6px; border: 1px solid #e0dcd7; font-size: 14px; background: white;">
+                        <option value="">Who am I?</option>
+                        <option value="Cait">Cait</option>
+                        <option value="Russel">Russel</option>
+                    </select>
                     <input type="text" id="customItemInput" placeholder="Add milk, bread, bin bags…" onkeydown="if(event.key==='Enter'){addCustomItem();}">
                     <button type="button" onclick="addCustomItem()">Add</button>
                 </div>
@@ -615,8 +620,8 @@
     </div>
 
     <script>
-        // Recipes are loaded live from the Notion Recipes database (see /api/recipes).
-        let recipes = [];  // loaded live from Notion via /api/recipes
+        // Recipes are loaded live from Notion via /api/recipes
+        let recipes = [];
 
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -635,7 +640,8 @@
         }
 
         // Each recipe's ingredients as a list, in the order they are written in Notion.
-                function normaliseRecipe(recipe) {
+        // The fallback list in the code stores them as one comma-separated string.
+        function normaliseRecipe(recipe) {
             if (!recipe.ingredientList) {
                 recipe.ingredientList = (recipe.ingredients || '').split(',').map(s => s.trim()).filter(Boolean);
             }
@@ -645,8 +651,6 @@
             return recipe;
         }
 
-        // Loads recipes from Notion. There is no built-in copy: if Notion can't be reached
-        // the page says so, so you never see out-of-date recipes without knowing.
         async function loadRecipesFromNotion() {
             try {
                 const res = await fetch('/api/recipes', { cache: 'no-store' });
@@ -667,7 +671,7 @@
                 '<button type="button" onclick="location.reload()" style="margin-left:8px;padding:6px 12px;border-radius:6px;border:1px solid #7a9b7f;background:white;color:#1a2633;cursor:pointer;">Try again</button></div>';
         }
 
-        function getProteinIcon(protein) {
+                function getProteinIcon(protein) {
             const icons = {
                 'Chicken': '🍗',
                 'Fish': '🐟',
@@ -712,13 +716,21 @@
         // Initialize
         async function init() {
             loadFromStorage();
-            setupTabs();
             document.getElementById('recipesList').innerHTML = '<div class="empty-state">Loading recipes from Notion...</div>';
             const ok = await loadRecipesFromNotion();
             if (!ok) { showRecipeLoadError(); return; }
             rebuildFilterOptions();
             renderFilterDropdowns();
             renderRecipes();
+            setupTabs();
+            document.getElementById('whoSelect').value = getWho();
+            await loadPlan();
+            loadShoppingRows();
+            // Pick up changes made on the other phone
+            setInterval(() => { loadPlan(); loadShoppingRows(); }, 30000);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) { loadPlan(); loadShoppingRows(); }
+            });
         }
 
         function renderFilterDropdowns() {
@@ -972,6 +984,7 @@
                 delete assignments[recipeName];
             }
             saveToStorage();
+            savePlanMeal(recipeName);
         }
 
         function renderShortlist() {
@@ -1002,6 +1015,7 @@
                 delete assignments[meal];
             }
             saveToStorage();
+            savePlanMeal(meal);
             renderWeek();
         }
 
@@ -1016,6 +1030,7 @@
                     assignments[meal].cook = cook;
                 }
                 saveToStorage();
+                savePlanMeal(meal);
             }
         }
 
@@ -1144,7 +1159,7 @@
                 const res = await fetch('/api/shopping', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ item }),
+                    body: JSON.stringify({ item, addedBy: getWho() }),
                 });
                 if (!res.ok) throw new Error((await res.json()).error);
                 loadShoppingRows();
@@ -1222,6 +1237,56 @@
                 } catch (e) {
                     alert(text);
                 }
+            }
+        }
+
+        // ---- Shared shortlist and week plan (stored in Notion via /api/plan) ----
+        function getWho() {
+            try { return localStorage.getItem('meal-who') || ''; } catch (e) { return ''; }
+        }
+
+        function setWho(name) {
+            try { localStorage.setItem('meal-who', name); } catch (e) { /* ignore */ }
+        }
+
+        async function loadPlan() {
+            try {
+                const res = await fetch('/api/plan');
+                if (!res.ok) throw new Error('plan not loaded');
+                const rows = await res.json();
+                shortlist = rows.filter(r => r.shortlisted && r.meal).map(r => r.meal);
+                assignments = {};
+                rows.forEach(r => {
+                    if (r.shortlisted && r.day) assignments[r.meal] = { day: r.day, cook: r.cook || 'Russel' };
+                });
+                saveToStorage();
+            } catch (e) {
+                // Offline or not set up: keep what is saved on this phone
+                return;
+            }
+            // Redraw the open tab, but not while someone is changing a dropdown
+            if (document.activeElement && document.activeElement.tagName === 'SELECT') return;
+            renderRecipes();
+            if (document.getElementById('shortlist').classList.contains('active')) renderShortlist();
+            if (document.getElementById('week').classList.contains('active')) renderWeek();
+        }
+
+        async function savePlanMeal(meal) {
+            const info = assignments[meal];
+            try {
+                await fetch('/api/plan', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        meal,
+                        shortlisted: shortlist.includes(meal),
+                        day: info ? info.day : '',
+                        cook: info ? (info.cook || 'Russel') : '',
+                        changedBy: getWho(),
+                    }),
+                });
+            } catch (e) {
+                // Saved on this phone already; will try again on the next change
             }
         }
 
